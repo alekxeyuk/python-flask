@@ -22,7 +22,7 @@ new Vue({
         },
         load: function(){
             this.loading = true
-            this.resourse_url = `https://capi-v2.sankakucomplex.com/posts?lang=english&page=${this.page}&limit=40&tags=order:quality+hide_posts_in_books:never+trap+rating:s`
+            this.resourse_url = `https://capi-v2.sankakucomplex.com/posts?lang=english&page=${this.page}&limit=40&tags=order:quality+hide_posts_in_books:never+trap`
             this.$http.get(this.resourse_url).then((responce) => {
 
                 var json = responce.data
