@@ -1,11 +1,11 @@
 from flask import Flask, Response, request, __version__
 import requests
-app = Flask(__name__, static_url_path='static')
+app = Flask(__name__, static_url_path='/static')
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def catch_all(path):
-    return app.send_static_file('static/index.html')
+    return app.send_static_file('/static/index.html')
 
 @app.route('/image/<path:path>')
 def image(path):
