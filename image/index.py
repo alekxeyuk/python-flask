@@ -6,7 +6,7 @@ app = Flask(__name__)
 def catch_all(path):
     print(path)
     print(request.args)
-    r = requests.get(path[6:] + f"?e={request.args.get('e')}&m={request.args.get('m')}")
+    r = requests.get(path[6:])
     def generate():
         for chunk in r.iter_content(chunk_size=128):
             yield chunk
