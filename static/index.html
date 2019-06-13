@@ -16,7 +16,7 @@
                 <div style="width: 100%; display: flex; justify-content: center;"><div style="margin: 10px;"><ins data-revive-zoneid="26" data-revive-id="7ceb878e8d5dc827f938e58363929ce4" class="rv-st-900"></ins></div></div>
                 <div class="list_item" v-for="tweet in tweets">
                     <a :href="tweet.file_url" target="_blank">
-                        <img :src=`image/${tweet.file_url}` alt="" srcset="">
+                        <img :src="tweet.file_url" alt="" srcset="">
                     </a>
                 </div>
             </div>
