@@ -13,9 +13,7 @@
     ],
     "routes": [
         {
-          "src": "/image/(.*)",
-          "status": 301,
-          "headers": { "Location": "/image/$1" }
+          "src": "/image/.*", "dest": "/image/"
         }
       ]
 }
