@@ -7,11 +7,9 @@ proxies = {
 }
 @app.route('/<path:path>')
 def catch_all(path):
-    print(requests.get("https://capi-v2.sankakucomplex.com/posts", proxies=proxies).content)
-    return Response(requests.get("https://capi-v2.sankakucomplex.com/posts", proxies=proxies).content, mimetype='application/json')
     # print(request.args)
-    # r = requests.get(path[6:])
+    r = requests.get(path[6:], proxies=proxies)
     # def generate():
     #     for chunk in r.iter_content(chunk_size=128):
     #         yield chunk
-    # return Response(r.content, mimetype='image/jpeg')
+    return Response(r.content, mimetype='image/jpeg')
