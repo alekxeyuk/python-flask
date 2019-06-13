@@ -4,7 +4,7 @@ app = Flask(__name__, static_url_path='static')
 
 @app.route('/')
 def root():
-    return app.send_static_file('index.html')
+    return app.send_static_file('static/index.html')
 
 @app.route('/image/<path:path>')
 def image(path):
