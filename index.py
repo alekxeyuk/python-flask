@@ -1,6 +1,6 @@
 from flask import Flask, Response, request, __version__
 import requests
-app = Flask(__name__, static_url_path='')
+app = Flask(__name__, static_url_path='static')
 
 @app.route('/')
 def root():
