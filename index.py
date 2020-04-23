@@ -31,7 +31,7 @@ def qrcodes_decode():
     r_json = request.get_json(silent=True)
     if r_json:
         found_uuids = []
-        for _ in mongo.db.codes.find({'qr_uuid': {'$in': [uuid for uuid in r_json.get('uuids')]}}):
+        for _ in mongo.db.codes.find({'qr_uuid': {'$in': r_json.get('uuids')}}):
             found_uuids.append(_.get('image_uuid'))
         return jsonify({'success': found_uuids})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
