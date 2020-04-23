@@ -1,7 +1,9 @@
 import os
+import json
 from flask import Flask
 from flask import jsonify
 from flask_pymongo import PyMongo
+from bson import json_util
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = os.getenv('MONGODB_URI')
@@ -9,8 +11,8 @@ mongo = PyMongo(app)
 
 @app.route("/")
 def home_page():
-    online_users = mongo.db.qrcodes.users.find({"online": True})
-    return jsonify({'result': online_users})
+    online_users = mongo.db.users.find_one({'online': True})
+    return jsonify({'result': json.loads(json_util.dumps(online_users))})
 
 # app = Flask(__name__, static_url_path='/static')
 
