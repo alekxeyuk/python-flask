@@ -27,27 +27,24 @@ def qrcodes_insert():
     r_json = request.get_json(silent=True)
     if r_json:
         qr_uuids = []
-        for image in r_json.get('result', []):
-            r_json_type = r_json.get('type', None)
+        for upload_dict in r_json.get('result', []):
+            r_json_type = upload_dict.get('type', None)
             if r_json_type in ('image', 'audio'):
                 if r_json_type == 'image':
-                    img = Image.new('RGBA', (r_json['data']['width'], r_json['data']['height']), (0, 0, 0, 0))
+                    background = Image.new('RGBA', (upload_dict['data']['width'], upload_dict['data']['height']), (0, 0, 0, 0))
                     qr = qrcode.QRCode(
                         error_correction=qrcode.constants.ERROR_CORRECT_L,
                         box_size=8,
                         border=2,
                     )
-                    qr.add_data(r_json['data']['uuid'])
+                    qr.add_data(upload_dict['data']['uuid'])
                     qr.make(fit=True)
                     qr_img = qr.make_image(fill_color="black", back_color="white")
+                    background.paste(qr_img, (0, 0))
+                    ImageDraw.Draw(background).text((0, 0), 'prostagma? qr-nsfw v2', (0, 0, 0))
                     buffer = BytesIO()
-                    qr_img.save(buffer)
-                    with Image.open(buffer) as buffer_qr_img:
-                        img.paste(buffer_qr_img, (0, 0))
-                        ImageDraw.Draw(img).text((0, 0), 'prostagma? qr-nsfw v2', (0, 0, 0))
-                    buffer.flush()
-                    img.save(buffer)
-                    qr_uuids.append(ses.post('https://api.dtf.ru/v1.8/uploader/upload', files={f'file_0': buffer}).json())
+                    background.save(buffer, 'png')
+                    qr_uuids.append(ses.post('https://api.dtf.ru/v1.8/uploader/upload', files={f'file_0': ('file.png', buffer.getbuffer(), 'image/png')}).json())
         return jsonify({'result': qr_uuids})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
 
