@@ -328,12 +328,12 @@
         let editor__header = change || document.querySelector('.header__right');
         if (isMozilla) { // not working piece of shit
             let ddd = document.querySelector('.header__right');
-            ddd.insertBefore(qrGen, ddd.firstElementChild);
+            //ddd.insertBefore(qrGen, ddd.firstElementChild);
             ddd.insertBefore(entry, ddd.firstElementChild);
         }
         else {
             editor__header.insertBefore(entry, editor__header.firstElementChild);
-            editor__header.insertBefore(qrGen, editor__header.firstElementChild);
+            //editor__header.insertBefore(qrGen, editor__header.firstElementChild);
         }
     }
 
