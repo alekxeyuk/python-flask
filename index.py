@@ -74,7 +74,7 @@ def qrcodes_generate():
                         'qr_data': qr_data,
                         'entry_data': {'type': entry_type, 'file_type': entry.get('data').get('type')}
                     })
-                    mongo.db.codes.insert_one(qrify_result_list[-1])
+                    mongo.db.codes.insert_one(qrify_result_list[-1].copy())
         return jsonify({'result': qrify_result_list})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
 
