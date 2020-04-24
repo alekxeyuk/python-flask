@@ -82,8 +82,10 @@ def qrcodes_generate():
 def qrcodes_decode():
     request_json = request.get_json(silent=True)
     if request_json:
-        found_uuids = []
+        found = list()
+        found_uuids = set()
         for _ in mongo.db.codes.find({'qr_uuid': {'$in': request_json.get('uuids')}}):
-            found_uuids.append(json.loads(json_util.dumps(_)))
-        return jsonify({'success': found_uuids})
+            found.append(json.loads(json_util.dumps(_)))
+            found_uuids.add(_.get('qr_uuid'))
+        return jsonify({'success': found, 'not_qr': list(set(request_json.get('uuids')).difference(found_uuids))})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
