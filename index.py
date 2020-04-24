@@ -10,7 +10,7 @@ from flask_pymongo import PyMongo
 from PIL import Image, ImageDraw
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = os.getenv('MONGODB_URI')[1:-1]
+app.config["MONGO_URI"] = os.getenv('MONGODB_URI')[1:-1] if os.path.isfile('now.json') else os.getenv('MONGODB_URI')
 mongo = PyMongo(app)
 ses = requests.Session()
 ses.headers.update({"X-Device-Token": os.getenv('DTF_TOKEN'), "x-this-is-csrf": "THIS IS SPARTA!"})
