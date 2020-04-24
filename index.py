@@ -67,13 +67,14 @@ def qrcodes_generate():
                     ImageDraw.Draw(background).text((4, 0), 'prostagma? qr-nsfw v2', (0, 0, 0))
                     buffer = BytesIO()
                     background.save(buffer, 'png')
-                    qrify_result_list.append(ses.post('https://api.dtf.ru/v1.8/uploader/upload', files={f'file_0': ('file.png', buffer.getbuffer(), 'image/png')}).json())
-                    mongo.db.codes.insert_one({
+                    dtf_response = ses.post('https://api.dtf.ru/v1.8/uploader/upload', files={f'file_0': ('file.png', buffer.getbuffer(), 'image/png')}).json()
+                    qrify_result_list.append({
                         'uuid': entry['data']['uuid'],
-                        'qr_uuid': qrify_result_list[-1]['result'][0]['data']['uuid'],
+                        'qr_uuid': dtf_response['result'][0]['data']['uuid'],
                         'qr_data': qr_data,
                         'entry_data': {'type': entry_type, 'file_type': entry.get('data').get('type')}
                     })
+                    mongo.db.codes.insert_one(qrify_result_list[-1])
         return jsonify({'result': qrify_result_list})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
 
