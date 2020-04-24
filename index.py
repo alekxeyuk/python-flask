@@ -52,29 +52,31 @@ def qrcodes_generate():
                         'entry_data': db_check.get('entry_data')
                     })
                     continue
-                if entry_type == 'image':
-                    background = Image.new('RGBA', (entry['data']['width'], entry['data']['height']), (0, 0, 0, 0))
-                    qr = qrcode.QRCode(
-                        error_correction=qrcode.constants.ERROR_CORRECT_L,
-                        box_size=8,
-                        border=2,
-                    )
-                    qr_data = f"{entry['data']['uuid']}|{entry.get('data').get('type')}"
-                    qr.add_data(qr_data)
-                    qr.make(fit=True)
-                    qr_img = qr.make_image(fill_color="black", back_color="white")
-                    background.paste(qr_img, (0, 0))
+                bg_size = (300, 300) if entry_type != 'image' else (entry['data']['width'], entry['data']['height'])
+                background = Image.new('RGBA', bg_size, (0, 0, 0, 0))
+                qr = qrcode.QRCode(
+                    error_correction=qrcode.constants.ERROR_CORRECT_L,
+                    box_size=3 if min(bg_size) < 300 else 6,
+                    border=2,
+                )
+                file_type = entry.get('data').get('type') if entry_type == 'image' else 'mp3'
+                qr_data = f"{entry['data']['uuid']}|{file_type}"
+                qr.add_data(qr_data)
+                qr.make(fit=True)
+                qr_img = qr.make_image(fill_color="black", back_color="white")
+                background.paste(qr_img, (0, 0))
+                if qr.box_size != 3:
                     ImageDraw.Draw(background).text((4, 0), 'prostagma? qr-nsfw v2', (0, 0, 0))
-                    buffer = BytesIO()
-                    background.save(buffer, 'png')
-                    dtf_response = ses.post('https://api.dtf.ru/v1.8/uploader/upload', files={f'file_0': ('file.png', buffer.getbuffer(), 'image/png')}).json()
-                    qrify_result_list.append({
-                        'uuid': entry['data']['uuid'],
-                        'qr_uuid': dtf_response['result'][0]['data']['uuid'],
-                        'qr_data': qr_data,
-                        'entry_data': {'type': entry_type, 'file_type': entry.get('data').get('type')}
-                    })
-                    mongo.db.codes.insert_one(qrify_result_list[-1].copy())
+                buffer = BytesIO()
+                background.save(buffer, 'png')
+                dtf_response = ses.post('https://api.dtf.ru/v1.8/uploader/upload', files={f'file_0': ('file.png', buffer.getbuffer(), 'image/png')}).json()
+                qrify_result_list.append({
+                    'uuid': entry['data']['uuid'],
+                    'qr_uuid': dtf_response['result'][0]['data']['uuid'],
+                    'qr_data': qr_data,
+                    'entry_data': {'type': entry_type, 'file_type': file_type}
+                })
+                mongo.db.codes.insert_one(qrify_result_list[-1].copy())
         return jsonify({'result': qrify_result_list})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
 
