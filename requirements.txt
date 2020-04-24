@@ -2,3 +2,5 @@ flask>=1.1.2
 requests>=2.23.0
 Flask-PyMongo>=2.3.0
 dnspython>=1.16.0
+Pillow>=7.1.1
+qrcode[pil]>=6.1
