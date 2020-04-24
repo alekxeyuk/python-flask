@@ -24,37 +24,37 @@ def home_page():
 
 @app.route('/v1/qrcodes/insert', methods=['POST'])
 def qrcodes_insert():
-    r_json = request.get_json(silent=True)
-    if r_json:
-        qr_uuids = []
-        for upload_dict in r_json.get('result', []):
-            r_json_type = upload_dict.get('type', None)
-            if r_json_type in ('image', 'audio'):
-                if r_json_type == 'image':
-                    background = Image.new('RGBA', (upload_dict['data']['width'], upload_dict['data']['height']), (0, 0, 0, 0))
+    request_json = request.get_json(silent=True)
+    if request_json:
+        qrify_result_list = []
+        for entry in request_json.get('payload', []):
+            entry_type = entry.get('type', None)
+            if entry_type in ('image', 'audio', 'custom'):
+                if entry_type == 'image':
+                    background = Image.new('RGBA', (entry['data']['width'], entry['data']['height']), (0, 0, 0, 0))
                     qr = qrcode.QRCode(
                         error_correction=qrcode.constants.ERROR_CORRECT_L,
                         box_size=8,
                         border=2,
                     )
-                    qr.add_data(upload_dict['data']['uuid'])
+                    qr.add_data(entry['data']['uuid'])
                     qr.make(fit=True)
                     qr_img = qr.make_image(fill_color="black", back_color="white")
                     background.paste(qr_img, (0, 0))
-                    ImageDraw.Draw(background).text((0, 0), 'prostagma? qr-nsfw v2', (0, 0, 0))
+                    ImageDraw.Draw(background).text((4, 0), 'prostagma? qr-nsfw v2', (0, 0, 0))
                     buffer = BytesIO()
                     background.save(buffer, 'png')
-                    qr_uuids.append(ses.post('https://api.dtf.ru/v1.8/uploader/upload', files={f'file_0': ('file.png', buffer.getbuffer(), 'image/png')}).json())
-        return jsonify({'result': qr_uuids})
+                    qrify_result_list.append(ses.post('https://api.dtf.ru/v1.8/uploader/upload', files={f'file_0': ('file.png', buffer.getbuffer(), 'image/png')}).json())
+        return jsonify({'result': qrify_result_list})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
 
 
 @app.route('/v1/qrcodes/decode', methods=['POST'])
 def qrcodes_decode():
-    r_json = request.get_json(silent=True)
-    if r_json:
+    request_json = request.get_json(silent=True)
+    if request_json:
         found_uuids = []
-        for _ in mongo.db.codes.find({'qr_uuid': {'$in': r_json.get('uuids')}}):
+        for _ in mongo.db.codes.find({'qr_uuid': {'$in': request_json.get('uuids')}}):
             found_uuids.append(_.get('image_uuid'))
         return jsonify({'success': found_uuids})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
