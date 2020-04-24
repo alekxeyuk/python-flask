@@ -35,7 +35,8 @@ def qrcodes_insert():
                     qrify_result_list.append({
                         'uuid': entry['data']['uuid'],
                         'qr_uuid': db_check.get('qr_uuid'),
-                        'qr_data': db_check.get('qr_data')
+                        'qr_data': db_check.get('qr_data'),
+                        'entry_data': db_check.get('entry_data')
                     })
                     continue
                 if entry_type == 'image':
@@ -45,7 +46,8 @@ def qrcodes_insert():
                         box_size=8,
                         border=2,
                     )
-                    qr.add_data(entry['data']['uuid'])
+                    qr_data = f"{entry['data']['uuid']}|{entry.get('data').get('type')}"
+                    qr.add_data(qr_data)
                     qr.make(fit=True)
                     qr_img = qr.make_image(fill_color="black", back_color="white")
                     background.paste(qr_img, (0, 0))
@@ -56,7 +58,8 @@ def qrcodes_insert():
                     mongo.db.codes.insert_one({
                         'uuid': entry['data']['uuid'],
                         'qr_uuid': qrify_result_list[-1]['result'][0]['data']['uuid'],
-                        'qr_data': {'type': entry_type, 'file_type': entry.get('data').get('type')}
+                        'qr_data': qr_data,
+                        'entry_data': {'type': entry_type, 'file_type': entry.get('data').get('type')}
                     })
         return jsonify({'result': qrify_result_list})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
