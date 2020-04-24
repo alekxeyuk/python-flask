@@ -28,6 +28,17 @@ def home_page():
 def qrcodes_insert():
     request_json = request.get_json(silent=True)
     if request_json:
+        db_check = mongo.db.codes.find_one({'qr_uuid': request_json['qr_uuid']})
+        if db_check:
+            return jsonify({'result': 'QRCode already exist'})
+        mongo.db.codes.insert_one(request_json)
+        return jsonify({'result': 'QRCode Inserted Successfully'})
+    return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
+
+@app.route('/v1/qrcodes/generate', methods=['POST'])
+def qrcodes_generate():
+    request_json = request.get_json(silent=True)
+    if request_json:
         qrify_result_list = []
         for entry in request_json.get('payload', []):
             entry_type = entry.get('type', None)
