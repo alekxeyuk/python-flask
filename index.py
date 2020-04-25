@@ -41,6 +41,8 @@ def parse_custom_text(text: str):
     if 'soundcloud.com' in text:
         text_data = text
         text_type = 'soundcloud'
+    else:
+        text_data, text_type = 'error', 'error'
     return text_data, text_type
 
 
@@ -102,6 +104,8 @@ def qrcodes_generate():
                     continue
                 bg_size = (300, 300)
                 qr_data, file_type = parse_custom_text(entry.get('data').get('text'))
+                if any(i == 'error' for i in (qr_data, file_type)):
+                    continue
                 qr_code = generate_qr_code(bg_size, qr_data)
                 dtf_response = ses.post('https://api.dtf.ru/v1.8/uploader/upload', files={f'file_0': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
                 qrify_result_list.append({
