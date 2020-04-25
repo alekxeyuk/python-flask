@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW v2.0
 // @namespace    http://dtf.ru/
-// @version      2.0
+// @version      2.0.1
 // @description  Watch NSFW content on DTF using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -27,6 +27,7 @@
 // @resource     customCSS https://userstyles.org/api/v1/styles/css/179778
 // @resource     fotorama  https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.css
 // @resource     qr_popup_css https://python-flask.alekxuk.now.sh/static/qr_nsfw_css.css
+// @downloadURL  https://python-flask.alekxuk.now.sh/static/qr_nsfw_v2.js
 // @copyright 2020, Prostagma (https://openuserjs.org/users/Prostagma)
 // @license MIT
 // @icon          https://dtf-static-bf19cf1.gcdn.co/static/build/dtf.ru/favicons/favicon.ico
