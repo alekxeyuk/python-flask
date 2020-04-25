@@ -470,6 +470,18 @@ Your browser does not support the audio element.
         }
     }
 
+    function formSoundCloud(link, node) {
+        let g = node.parentNode;
+        let player = document.createElement(g.className === 'comments__item__media' ? 'div' : 'center');
+        player.innerHTML = `<iframe width="100%" height="116" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=${link}&color=%23ff5500&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"></iframe>`;
+        node.remove();
+        g.appendChild(player);
+        if (g.className === 'comments__item__media') {
+            g.style.width = '100%';
+            g.parentNode.style.paddingRight = '0';
+        }
+    }
+
     function process_qr_data(qr_data, image_node, spliter = '|') {
         let [url_test, tag_test] = [null, null];
         if (spliter === '|') {
@@ -498,6 +510,15 @@ Your browser does not support the audio element.
                 break;
             case 'audio':
                 formMusicPlayer(`https://leonardo.osnova.io/audio/${qr_data.uuid}/`, image_node);
+                break;
+            case 'custom':
+                switch(qr_data.entry_data.file_type) {
+                    case 'soundcloud':
+                        formSoundCloud(url_test, image_node);
+                        break;
+                    default:
+                        break;
+                }
                 break;
             default:
                 break;
@@ -631,10 +652,36 @@ Your browser does not support the audio element.
             statusLabel.style.visibility = 'hidden';
             console.log(textField.value);
             if (textField.value.length >= 8) {
+                let textValue = textField.value;
                 textField.value = '';
                 sendButton.classList.add('ui-button--loading');
-                setTimeout(() => {showError(statusLabel, 'Error - cant reach server', sendButton)}, 2000)
-                // closeButton.click();
+                axios.request({
+                    method: "post",
+                    url: "https://python-flask.alekxuk.now.sh/v1/qrcodes/generate",
+                    data: JSON.stringify({payload: [{type: 'custom', data: {'text': textValue}}]}),
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                }).then(data => {
+                    sendButton.classList.remove('ui-button--loading');
+                    if (data.data.result.length) {
+                        data.data.result.forEach(qr_result => {
+                            console.log(qr_result);
+                            GM_download(`https://leonardo.osnova.io/${qr_result.qr_uuid}/`, `${qr_result.qr_uuid}.png`);
+                        })
+                        closeButton.click();
+                    } else {
+                        showError(statusLabel, 'Error - server was not able to parse your link', sendButton);
+                    }
+                }).catch(error => {
+                    if (!error.status) {
+                        showError(statusLabel, 'Error - Network Error', sendButton);
+                    } else {
+                        console.log(error);
+                        showError(statusLabel, error.response, sendButton);
+                    }
+                });
             } else {
                 showError(statusLabel, 'Error - too short url', sendButton);
             }
