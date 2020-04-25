@@ -483,6 +483,7 @@ Your browser does not support the audio element.
     }
 
     function process_qr_data(qr_data, image_node, spliter = '|') {
+        //console.log(qr_data);
         let [url_test, tag_test] = [null, null];
         if (spliter === '|') {
             [url_test, tag_test] = qr_data.qr_data.split('|');
@@ -569,6 +570,28 @@ Your browser does not support the audio element.
         }
     }
 
+    function qrFastDecode() {
+        console.log('qrfast implemented');
+        for (let archor of document.querySelectorAll('.content__anchor')) {
+            let sib_elem = archor.nextElementSibling;
+            if (sib_elem.tagName === "FIGURE") {
+                let split_code = archor.getAttribute('name').split('-');
+                let tag_test = split_code.pop();
+                let url_test = split_code.join('-');
+                let data = {
+                    entry_data: {
+                        file_type: tag_test,
+                        type: "image"
+                    },
+                    qr_data: archor.getAttribute('name'),
+                    qr_uuid: sib_elem.querySelector('.andropov_image').attributes["data-image-src"].value.split('/')[3],
+                    uuid: url_test
+                }
+                process_qr_data(data, sib_elem.querySelector('.andropov_image'), '-');
+            }
+        }
+    }
+
     function parseMainBody(event, commentsOnly = false) {
         let notif = document.querySelector("#qr-notif");
         if (notif.style.display === "none") {
@@ -582,9 +605,18 @@ Your browser does not support the audio element.
                     evolution_decode();
                 }
                 else if (!GM_getValue("comments_show", false)) {
-                    evolution_decode('.layout--entry__content');
+                    if (document.querySelector('[name="qrfast"]')) {
+                        qrFastDecode();
+                    } else {
+                        evolution_decode('.layout--entry__content');
+                    }
                 } else {
-                    evolution_decode(['.layout--entry__content', '.comments__item__media']);
+                    if (document.querySelector('[name="qrfast"]')) {
+                        qrFastDecode();
+                        evolution_decode();
+                    } else {
+                        evolution_decode(['.layout--entry__content', '.comments__item__media']);
+                    }
                 }
 
                 setTimeout(() => {
