@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW v2.0
 // @namespace    http://dtf.ru/
-// @version      2.0.1
+// @version      2.0.2
 // @description  Watch NSFW content on DTF using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -337,17 +337,17 @@
         }, 'ui-button ui-button--6 ui-button--only-icon editor__header-save-button');
         // Qr from text generator
         entry.style = 'margin-right: 10px;';
-        //let qrGen = prepareTextQRGeneratorDiv('ui-button ui-button--6 ui-button--only-icon editor__header-save-button');
-        //qrGen.style = 'margin-right: 10px;';
+        let qrGen = prepareCustomQrDiv('ui-button ui-button--6 ui-button--only-icon editor__header-save-button');
+        qrGen.style = 'margin-right: 10px;';
         let editor__header = change || document.querySelector('.header__right');
         if (isMozilla) { // not working piece of shit
             let ddd = document.querySelector('.header__right');
-            //ddd.insertBefore(qrGen, ddd.firstElementChild);
+            ddd.insertBefore(qrGen, ddd.firstElementChild);
             ddd.insertBefore(entry, ddd.firstElementChild);
         }
         else {
             editor__header.insertBefore(entry, editor__header.firstElementChild);
-            //editor__header.insertBefore(qrGen, editor__header.firstElementChild);
+            editor__header.insertBefore(qrGen, editor__header.firstElementChild);
         }
     }
 
