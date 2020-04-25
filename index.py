@@ -39,8 +39,11 @@ def generate_qr_code(bg_size, qr_data):
 def parse_custom_text(text: str):
     text_data, text_type = '', ''
     if 'soundcloud.com' in text:
-        text_data = text
-        text_type = 'soundcloud'
+        if requests.get(f'https://w.soundcloud.com/player/?url={text}').status_code == 200:
+            text_data = text
+            text_type = 'soundcloud'
+        else:
+            text_data, text_type = 'error', 'error'
     else:
         text_data, text_type = 'error', 'error'
     return text_data, text_type
