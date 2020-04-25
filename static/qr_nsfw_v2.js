@@ -26,6 +26,7 @@
 // @connect      i.postimg.cc
 // @resource     customCSS https://userstyles.org/api/v1/styles/css/179778
 // @resource     fotorama  https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.css
+// @resource     qr_popup_css https://python-flask.alekxuk.now.sh/static/qr_nsfw_css.css
 // @copyright 2020, Prostagma (https://openuserjs.org/users/Prostagma)
 // @license MIT
 // @icon          https://dtf-static-bf19cf1.gcdn.co/static/build/dtf.ru/favicons/favicon.ico
@@ -315,6 +316,18 @@
         return entry;
     }
 
+    function prepareCustomQrDiv(className = 'thesis__upload_file thesis__attach_something') {
+        let entry = document.createElement('div');
+        entry.className = className;
+        entry.innerHTML = '<img class="icon icon--ui_image" id="reply-btn" src="https://leonardo.osnova.io/352313d2-eed6-edef-4af8-8ffb18cfa7ea/" height="16">';
+        entry.onclick = (event) => {
+            let qr_popup = document.querySelector('.qr_popup');
+            let classes = ['qr_popup__container--shown', 'qr_popup__layout--shown'];
+            qr_popup.childNodes.forEach(node => node.classList.add(classes.pop()));
+        };
+        return entry;
+    }
+
     function addButtonsToPostEditor(change = null) {
         // Image uploader
         let entry = prepareImageUploaderDiv({
@@ -346,8 +359,8 @@
         });
         thesis_panel.insertBefore(entry, thesis_panel.querySelector('.thesis__upload_file'));
         // Qr from text generator
-        //let qrGen = prepareTextQRGeneratorDiv();
-        //thesis_panel.insertBefore(qrGen, thesis_panel.querySelector('.ui_preloader'));
+        let qrGen = prepareCustomQrDiv();
+        thesis_panel.insertBefore(qrGen, thesis_panel.querySelector('.ui_preloader'));
 
         if (!document.querySelector('#qr-cmnt-btn')) {
             addCommentParseButton();
@@ -582,12 +595,66 @@ Your browser does not support the audio element.
         }
     }
 
-    var referenceNode = document.querySelector('.creation_button');
-    referenceNode.setAttribute("class", "creation_button main_menu__write-button ui-button ui-button--12 ui-button--small lm-hidden l-mr-5");
-    let entry = document.createElement('div');
-    entry.innerHTML = '<img id="qr-btn" src="https://leonardo.osnova.io/f44b037e-389d-4ed7-902c-83aeca953095/" height="32"><div id="qr-notif" class="messenger-panel__down" style="display: none;" data-v-d4ebc8c2=""><div id="qr-text" class="messenger-panel__down-head" data-v-d4ebc8c2="">Попробуйте еще раз</div> </div>';
-    entry.onclick = parseMainBodyFunc;
-    referenceNode.parentNode.insertBefore(entry, referenceNode.nextSibling);
+    function addPopUp() {
+        let referenceNode = document.querySelector('.main_menu');
+        let popUp = document.createElement('div');
+        popUp.classList.add('qr_popup');
+        popUp.setAttribute('data-ignore-outside-click', '');
+        popUp.innerHTML =
+        `<div class="qr_popup__layout"></div><div class="qr_popup__container"><div class="qr_popup__container__window qr_popup__container__window--styled"><div class="qr_popup__container__window__close"><svg class="icon icon--ui_close" width="12" height="12"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#ui_close"></use></svg></div><div class="qr_popup__container__window__tpl"><div class="qr_popup__content qr_popup__content--popup_attach_service">
+<h4>Custom QrCode Creation</h4>
+<form class="ui_form l-mt-15" onsubmit="return false;">
+<fieldset>
+<input type="text" name="link" placeholder="Ссылка" autofocus="">
+<label class="label l-block l-mt-5">Ya.Music, SoundCloud, PornHub</label>
+</fieldset></form><div class="thesis__submit ui-button ui-button--1">Отправить</div><label class="qr_popup_label label l-block l-mt-5" style="visibility: hidden;color: red;"></label></div></div></div></div>`
+        let closeButton = popUp.querySelector('.qr_popup__container__window__close');
+        let sendButton = popUp.querySelector('.thesis__submit');
+        let textField = popUp.querySelector('input');
+        let statusLabel = popUp.querySelector('.qr_popup_label');
+        closeButton.onclick = () => {
+            console.log(popUp);
+            popUp.childNodes.forEach(node => node.classList.remove('qr_popup__layout--shown', 'qr_popup__container--shown'));
+            textField.value = '';
+            statusLabel.style.visibility = 'hidden';
+            sendButton.classList.remove('ui-button--loading');
+        }
+
+        function showError(label, errorText, button) {
+            button.classList.remove('ui-button--loading');
+            label.style.visibility = 'visible';
+            label.style.color = 'red';
+            label.textContent = errorText;
+        }
+
+        sendButton.onclick = () => {
+            statusLabel.style.visibility = 'hidden';
+            console.log(textField.value);
+            if (textField.value.length >= 8) {
+                textField.value = '';
+                sendButton.classList.add('ui-button--loading');
+                setTimeout(() => {showError(statusLabel, 'Error - cant reach server', sendButton)}, 2000)
+                // closeButton.click();
+            } else {
+                showError(statusLabel, 'Error - too short url', sendButton);
+            }
+        }
+        referenceNode.appendChild(popUp);
+        GM_addStyle(GM_getResourceText ("qr_popup_css"));
+    }
+
+    function addQrButton() {
+        let referenceNode = document.querySelector('.creation_button');
+        referenceNode.setAttribute("class", "creation_button main_menu__write-button ui-button ui-button--12 ui-button--small lm-hidden l-mr-5");
+        let entry = document.createElement('div');
+        entry.innerHTML = '<img id="qr-btn" src="https://leonardo.osnova.io/f44b037e-389d-4ed7-902c-83aeca953095/" height="32"><div id="qr-notif" class="messenger-panel__down" style="display: none;" data-v-d4ebc8c2=""><div id="qr-text" class="messenger-panel__down-head" data-v-d4ebc8c2="">Попробуйте еще раз</div> </div>';
+        entry.onclick = parseMainBodyFunc;
+        referenceNode.parentNode.insertBefore(entry, referenceNode.nextSibling);
+    }
+
+    addQrButton();
+    addPopUp();
+
 
     if (GM_getValue("darkTheme", false)) {
         GM_addStyle(JSON.parse(GM_getResourceText ("customCSS")).css.slice(33, -1));
