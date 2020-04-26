@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from io import BytesIO
 
 import qrcode
@@ -15,7 +16,10 @@ app.config["MONGO_URI"] = os.getenv('MONGODB_URI')[1:-1] if os.path.isfile('now.
 CORS(app)
 mongo = PyMongo(app)
 ses = requests.Session()
-ses.headers.update({"X-Device-Token": os.getenv('DTF_TOKEN'), "x-this-is-csrf": "THIS IS SPARTA!"})
+ses.headers.update({"X-Device-Token": os.getenv('DTF_TOKEN'), "x-this-is-csrf": "THIS IS SPARTA!", 'x-retpath-y': 'xyz'})
+
+YANDEX_REGEX = r"/album/(?P<album>\d+)(?:/track/(?P<track>\d+))?"
+YANDEX_PATTERN = re.compile(YANDEX_REGEX)
 
 
 def generate_qr_code(bg_size, qr_data):
@@ -37,15 +41,24 @@ def generate_qr_code(bg_size, qr_data):
 
 
 def parse_custom_text(text: str):
-    text_data, text_type = '', ''
+    text_data, text_type = 'error', 'error'
     if 'soundcloud.com' in text:
         if requests.get(f'https://w.soundcloud.com/player/?url={text}').status_code == 200:
             text_data = text
             text_type = 'soundcloud'
-        else:
-            text_data, text_type = 'error', 'error'
-    else:
-        text_data, text_type = 'error', 'error'
+    elif 'music.yandex.ru' in text:
+        matches = YANDEX_PATTERN.search(text)
+        if matches:
+            match_dict = matches.groupdict()
+            track, album = match_dict.get('track'), match_dict.get('album')
+            if track:
+                response = ses.get('https://music.yandex.ru/api/v2.1/handlers/tracks', params=(('tracks', track),)).json()
+                if isinstance(response, list):
+                    text_data, text_type = f'{album}|{track}', 'yamusic'
+            else:
+                response = ses.get(f'https://music.yandex.ru/api/v2.1/handlers/album/{album}').json()
+                if not response.get('error', ):
+                    text_data, text_type = f'{album}', 'yamusic'
     return text_data, text_type
 
 

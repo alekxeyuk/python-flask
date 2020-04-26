@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW v2.0
 // @namespace    http://dtf.ru/
-// @version      2.0.2
+// @version      2.0.3
 // @description  Watch NSFW content on DTF using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -238,24 +238,8 @@
                     console.log(data.data);
                     data.data.result.forEach(qr_result => {
                         GM_download(`https://leonardo.osnova.io/${qr_result.qr_uuid}/`, `${qr_result.uuid}.png`);
-                        //downloadImage(`${qr_result.uuid}.png`, `https://leonardo.osnova.io/${qr_result.qr_uuid}/`);
                     })
                 })
-                //data.data.result.forEach((el, index) => {
-                    //if (el.type === 'error') {
-                    //    pT.innerHTML = '<b>Error</b>';
-                    //} else {
-                        //console.log(el.data.uuid);
-                        //console.log(el);
-                        //let imageMinSize = Math.min(Math.min(el.data.width, el.data.height), 200);
-                        //let qr = safeQrPrepare(imageMinSize, `${el.data.uuid}|${"mp4,gif".includes(el.data.type) ? "mp4" : 'audio_info' in el.data ? el.data.audio_info.format : el.data.type}`);
-                        //qr.init();
-                        //canvas.width = 'width' in el.data ? el.data.width : 200;
-                        //canvas.height = 'height' in el.data ? el.data.height : 200;
-                        //context.drawImage(qr.domElement, 0, 0);
-                        //downloadImage(`${el.data.uuid}.png`, canvas.toDataURL("image/png"));
-                    //}
-                //});
             } else {
                 let canvas = document.createElement('canvas');
                 let context = canvas.getContext("2d");
@@ -301,7 +285,6 @@
                         upload_files(fd, `https://${data.data.data.server}.gofile.io/upload`, {'server': data.data.data.server, 'names': big_names});
                     });
                 } else {
-                    //return 0;
                     console.log('Uploading Small Files');
                     console.log(small);
                     fd = new FormData();
@@ -427,17 +410,6 @@
         return (a.host && a.host != window.location.host);
     }
 
-    function formMusicPlayer(link, node) {
-        let g = node.parentNode;
-        let player = document.createElement(g.className === 'comments__item__media' ? 'div' : 'center');
-        player.innerHTML = `<audio controls preload="metadata" style=" width:300px;">
-<source src="${link}" type="audio/mpeg">
-Your browser does not support the audio element.
-</audio>`;
-        node.remove();
-        g.appendChild(player);
-    }
-
     function formVideoDiv(mp4Link, node, UUID = false) {
         let g = node.parentNode;
         let center = document.createElement('center');
@@ -459,7 +431,6 @@ Your browser does not support the audio element.
 
         center.addEventListener('click', playVideo);
         node.remove();
-        //g.lastElementChild.remove();
         g.appendChild(center);
     }
 
@@ -471,10 +442,10 @@ Your browser does not support the audio element.
         }
     }
 
-    function formSoundCloud(link, node) {
+    function formIframe(iframeHTML, node) {
         let g = node.parentNode;
         let player = document.createElement(g.className === 'comments__item__media' ? 'div' : 'center');
-        player.innerHTML = `<iframe width="100%" height="116" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=${link}&color=%23ff5500&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"></iframe>`;
+        player.innerHTML = iframeHTML;
         node.remove();
         g.appendChild(player);
         if (g.className === 'comments__item__media') {
@@ -483,8 +454,25 @@ Your browser does not support the audio element.
         }
     }
 
+    function formMusicPlayer(link, node) {
+        formIframe(`<audio controls preload="metadata" style=" width:100%;"><source src="${link}" type="audio/mpeg">Your browser does not support the audio element.</audio>`, node);
+    }
+
+    function formSoundCloud(link, node) {
+        formIframe(`<iframe width="100%" height="116" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=${link}&color=%23ff5500&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"></iframe>`, node);
+    }
+
+    function formYaMusic(data, node) {
+        let url = `https://music.yandex.ru/iframe/`;
+        if (data.track) {
+            url += `#track/${data.track}/${data.album}`;
+        } else {
+            url += `#album/${data.album}`;
+        }
+        formIframe(`<iframe frameborder="0" style="border:none;width:100%;height:${!data.track ? '400px' : '151px'};" width="100%" src="${url}"></iframe>`, node);
+    }
+
     function process_qr_data(qr_data, image_node, spliter = '|') {
-        //console.log(qr_data);
         let [url_test, tag_test] = [null, null];
         if (spliter === '|') {
             [url_test, tag_test] = qr_data.qr_data.split('|');
@@ -517,6 +505,9 @@ Your browser does not support the audio element.
                 switch(qr_data.entry_data.file_type) {
                     case 'soundcloud':
                         formSoundCloud(url_test, image_node);
+                        break;
+                    case 'yamusic':
+                        formYaMusic({track: tag_test, album: url_test}, image_node);
                         break;
                     default:
                         break;
