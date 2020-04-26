@@ -18,7 +18,7 @@ mongo = PyMongo(app)
 ses = requests.Session()
 ses.headers.update({"X-Device-Token": os.getenv('DTF_TOKEN'), "x-this-is-csrf": "THIS IS SPARTA!", 'x-retpath-y': 'xyz'})
 
-YANDEX_REGEX = r"/album/(?P<album>\d+)(?:/track/(?P<track>\d+))?"
+YANDEX_REGEX = r"/album/(?P<album>\d+)(?:/track/(?P<track>\d+))?|users/(?P<user>.+)/playlists/(?P<playlist>\d+)"
 YANDEX_PATTERN = re.compile(YANDEX_REGEX)
 
 
@@ -50,15 +50,19 @@ def parse_custom_text(text: str):
         matches = YANDEX_PATTERN.search(text)
         if matches:
             match_dict = matches.groupdict()
-            track, album = match_dict.get('track'), match_dict.get('album')
+            track, album, user, playlist = match_dict.get('track'), match_dict.get('album'), match_dict.get('user'), match_dict.get('playlist')
             if track:
                 response = ses.get('https://music.yandex.ru/api/v2.1/handlers/tracks', params=(('tracks', track),)).json()
                 if isinstance(response, list):
                     text_data, text_type = f'{album}|{track}', 'yamusic'
-            else:
+            elif album:
                 response = ses.get(f'https://music.yandex.ru/api/v2.1/handlers/album/{album}').json()
-                if not response.get('error', ):
+                if not response.get('error'):
                     text_data, text_type = f'{album}', 'yamusic'
+            elif user and playlist:
+                response = ses.get(f'https://music.yandex.ru/api/v2.1/handlers/playlist/{user}/{playlist}').json()
+                if not response.get('error'):
+                    text_data, text_type = f'{user}|{playlist}', 'yamusic_playlist'
     return text_data, text_type
 
 

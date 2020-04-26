@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW v2.0
 // @namespace    http://dtf.ru/
-// @version      2.0.3
+// @version      2.0.4
 // @description  Watch NSFW content on DTF using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -466,8 +466,10 @@
         let url = `https://music.yandex.ru/iframe/`;
         if (data.track) {
             url += `#track/${data.track}/${data.album}`;
-        } else {
+        } else if (data.album) {
             url += `#album/${data.album}`;
+        } else {
+            url += `#playlist/${data.user}/${data.playlist}`;
         }
         formIframe(`<iframe frameborder="0" style="border:none;width:100%;height:${!data.track ? '400px' : '151px'};" width="100%" src="${url}"></iframe>`, node);
     }
@@ -508,6 +510,9 @@
                         break;
                     case 'yamusic':
                         formYaMusic({track: tag_test, album: url_test}, image_node);
+                        break;
+                    case 'yamusic_playlist':
+                        formYaMusic({playlist: tag_test, user: url_test}, image_node);
                         break;
                     default:
                         break;
