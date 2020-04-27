@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW v2.0
 // @namespace    http://dtf.ru/
-// @version      2.0.4
+// @version      2.0.5
 // @description  Watch NSFW content on DTF using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -164,7 +164,7 @@
     function downloadImage(url, data) {
         let downloadLink = document.createElement('a');
         downloadLink.setAttribute("download", url);
-        downloadLink.href = data//data.replace("image/png", "image/octet-stream");
+        downloadLink.href = data.replace("image/png", "image/octet-stream");
         downloadLink.click();
     }
 
@@ -455,7 +455,7 @@
     }
 
     function formMusicPlayer(link, node) {
-        formIframe(`<audio controls preload="metadata" style=" width:100%;"><source src="${link}" type="audio/mpeg">Your browser does not support the audio element.</audio>`, node);
+        formIframe(`<audio controls preload="metadata" style=" width:100%;"><source src="${link}" type="audio/mpeg"></audio>`, node);
     }
 
     function formSoundCloud(link, node) {
@@ -472,6 +472,10 @@
             url += `#playlist/${data.user}/${data.playlist}`;
         }
         formIframe(`<iframe frameborder="0" style="border:none;width:100%;height:${!data.track ? '400px' : '151px'};" width="100%" src="${url}"></iframe>`, node);
+    }
+
+    function formPornHub(data, node) {
+        formIframe(`<iframe src="https://rt.pornhub.com/embed/${data}" frameborder="0" width="560" height="315" scrolling="no" allowfullscreen></iframe>`, node);
     }
 
     function process_qr_data(qr_data, image_node, spliter = '|') {
@@ -505,6 +509,9 @@
                 break;
             case 'custom':
                 switch(qr_data.entry_data.file_type) {
+                    case 'pornhub':
+                        formPornHub(url_test, image_node);
+                        break;
                     case 'soundcloud':
                         formSoundCloud(url_test, image_node);
                         break;
@@ -513,6 +520,15 @@
                         break;
                     case 'yamusic_playlist':
                         formYaMusic({playlist: tag_test, user: url_test}, image_node);
+                        break;
+                    case 'image':
+                        formImageDiv(url_test, image_node);
+                        break;
+                    case 'video':
+                        formVideoDiv(url_test, image_node, false);
+                        break;
+                    case 'audio':
+                        formMusicPlayer(url_test, image_node);
                         break;
                     default:
                         break;
