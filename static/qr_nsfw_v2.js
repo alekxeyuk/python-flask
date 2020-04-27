@@ -481,17 +481,21 @@
             }
         }).then(data => {
             console.log(data.data.data.files);
+            node = node.parentNode;
+            node.innerHTML = '';
             Object.values(data.data.data.files).forEach(file => {
+                let new_node = document.createElement('div');
+                node.appendChild(new_node);
                 let mimetype = file.mimetype.split('/')[0];
                 switch (mimetype) {
                     case 'audio':
-                        formMusicPlayer(file.link, node);
+                        formMusicPlayer(file.link, new_node);
                         break;
                     case 'image':
-                        formImageDiv(file.link, node);
+                        formImageDiv(file.link, new_node);
                         break;
                     case 'video':
-                        formVideoDiv(file.link, node);
+                        formVideoDiv(file.link, new_node);
                         break;
                     default:
                         break;
