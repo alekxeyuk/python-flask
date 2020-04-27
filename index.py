@@ -43,39 +43,44 @@ def generate_qr_code(bg_size, qr_data):
 
 def parse_custom_text(text: str):
     text_data, text_type = 'error', 'error'
-    if 'soundcloud.com' in text:
-        if requests.get(f'https://w.soundcloud.com/player/?url={text}').status_code == 200:
-            text_data = text
-            text_type = 'soundcloud'
-    elif 'music.yandex.ru' in text:
-        matches = YANDEX_PATTERN.search(text)
-        if matches:
-            match_dict = matches.groupdict()
-            track, album, user, playlist = match_dict.get('track'), match_dict.get('album'), match_dict.get('user'), match_dict.get('playlist')
-            if track:
-                response = ses.get('https://music.yandex.ru/api/v2.1/handlers/tracks', params=(('tracks', track),)).json()
-                if isinstance(response, list):
-                    text_data, text_type = f'{album}|{track}', 'yamusic'
-            elif album:
-                response = ses.get(f'https://music.yandex.ru/api/v2.1/handlers/album/{album}').json()
-                if not response.get('error'):
-                    text_data, text_type = f'{album}', 'yamusic'
-            elif user and playlist:
-                response = ses.get(f'https://music.yandex.ru/api/v2.1/handlers/playlist/{user}/{playlist}').json()
-                if not response.get('error'):
-                    text_data, text_type = f'{user}|{playlist}', 'yamusic_playlist'
-    elif 'pornhub.com' in text and validators.url(text):
-        viewkey = text.split('viewkey=')[-1]
-        response = ses.head(f'https://rt.pornhub.com/embed/{viewkey}')
-        if response.status_code == 200:
-            text_data, text_type = viewkey, 'pornhub'
-    elif validators.url(text):
-        response = requests.head(text).headers.get('content-type')
-        if response:
-            registry = response.split('/')[0]
-            if registry in ('audio', 'image', 'video'):
+    if validators.url(text):
+        if 'soundcloud.com' in text:
+            if requests.get(f'https://w.soundcloud.com/player/?url={text}').status_code == 200:
                 text_data = text
-                text_type = registry
+                text_type = 'soundcloud'
+        elif 'music.yandex.ru' in text:
+            matches = YANDEX_PATTERN.search(text)
+            if matches:
+                match_dict = matches.groupdict()
+                track, album, user, playlist = match_dict.get('track'), match_dict.get('album'), match_dict.get('user'), match_dict.get('playlist')
+                if track:
+                    response = ses.get('https://music.yandex.ru/api/v2.1/handlers/tracks', params=(('tracks', track),)).json()
+                    if isinstance(response, list):
+                        text_data, text_type = f'{album}|{track}', 'yamusic'
+                elif album:
+                    response = ses.get(f'https://music.yandex.ru/api/v2.1/handlers/album/{album}').json()
+                    if not response.get('error'):
+                        text_data, text_type = f'{album}', 'yamusic'
+                elif user and playlist:
+                    response = ses.get(f'https://music.yandex.ru/api/v2.1/handlers/playlist/{user}/{playlist}').json()
+                    if not response.get('error'):
+                        text_data, text_type = f'{user}|{playlist}', 'yamusic_playlist'
+        elif 'pornhub.com' in text:
+            viewkey = text.split('viewkey=')[-1]
+            response = ses.head(f'https://rt.pornhub.com/embed/{viewkey}')
+            if response.status_code == 200:
+                text_data, text_type = viewkey, 'pornhub'
+        elif 'gofile.io' in text:
+            response = requests.get(text).json().get('status')
+            if response == 'ok':
+                text_data, text_type = text, 'gofile'
+        else:
+            response = requests.head(text).headers.get('content-type')
+            if response:
+                registry = response.split('/')[0]
+                if registry in ('audio', 'image', 'video'):
+                    text_data = text
+                    text_type = registry
     return text_data, text_type
 
 
