@@ -5,6 +5,7 @@ from io import BytesIO
 
 import qrcode
 import requests
+import validators
 from bson import json_util
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -63,6 +64,18 @@ def parse_custom_text(text: str):
                 response = ses.get(f'https://music.yandex.ru/api/v2.1/handlers/playlist/{user}/{playlist}').json()
                 if not response.get('error'):
                     text_data, text_type = f'{user}|{playlist}', 'yamusic_playlist'
+    elif 'pornhub.com' in text and validators.url(text):
+        viewkey = text.split('viewkey=')[-1]
+        response = ses.head(f'https://rt.pornhub.com/embed/{viewkey}')
+        if response.status_code == 200:
+            text_data, text_type = viewkey, 'pornhub'
+    elif validators.url(text):
+        response = requests.head(text).headers.get('content-type')
+        if response:
+            registry = response.split('/')[0]
+            if registry in ('audio', 'image', 'video'):
+                text_data = text
+                text_type = registry
     return text_data, text_type
 
 
