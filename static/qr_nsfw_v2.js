@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW v2.0
 // @namespace    http://dtf.ru/
-// @version      2.0.5
+// @version      2.0.6
 // @description  Watch NSFW content on DTF using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -200,6 +200,23 @@
         }
     }
 
+    function generateRequest(payload_data) {
+        axios.request({
+            method: "post",
+            url: "https://python-flask.alekxuk.now.sh/v1/qrcodes/generate",
+            data: JSON.stringify({payload: payload_data}),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        }).then(data => {
+            console.log(data.data);
+            data.data.result.forEach(qr_result => {
+                GM_download(`https://leonardo.osnova.io/${qr_result.qr_uuid}/`, `${qr_result.uuid}.png`);
+            })
+        })
+    }
+
     function upload_files(formData, url, upl_server = false) {
         let notif = document.querySelector('#qr-notif');
         notif.style.display = '';
@@ -221,36 +238,13 @@
             }
         }).then(data => {
             pT.innerHTML = '<b>DONE</b>';
-
-            let canvas = document.createElement('canvas');
-            let context = canvas.getContext("2d");
             console.log(data.data);
             if (!upl_server) {
-                axios.request({
-                    method: "post",
-                    url: "https://python-flask.alekxuk.now.sh/v1/qrcodes/generate",
-                    data: JSON.stringify({payload: data.data.result}),
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                }).then(data => {
-                    console.log(data.data);
-                    data.data.result.forEach(qr_result => {
-                        GM_download(`https://leonardo.osnova.io/${qr_result.qr_uuid}/`, `${qr_result.uuid}.png`);
-                    })
-                })
+                generateRequest(data.data.result);
             } else {
-                let canvas = document.createElement('canvas');
-                let context = canvas.getContext("2d");
-                let uploadedFileUrl = `https://${upl_server.server}.gofile.io/getUpload?c=${data.data.data.code}|gofile`;
+                let uploadedFileUrl = `https://${upl_server.server}.gofile.io/getUpload?c=${data.data.data.code}`;
                 console.log(uploadedFileUrl);
-                let qr = safeQrPrepare(200, uploadedFileUrl);
-                qr.init();
-                canvas.width = 200;
-                canvas.height = 200;
-                context.drawImage(qr.domElement, 0, 0);
-                downloadImage(`${data.data.data.code}.png`, canvas.toDataURL("image/png"));
+                generateRequest([{type: 'custom', data: {'text': uploadedFileUrl}}]);
             }
             setTimeout(() => {
                 notif.style.display = "none";
@@ -277,7 +271,7 @@
                         console.log(data.data.data.server);
                         let big_names = [];
                         big.forEach((item) => {
-                            fd.set(`filesUploaded`, item);
+                            fd.append(`filesUploaded`, item);
                             big_names.push(item.name);
                             console.log(item);
                         });
@@ -478,6 +472,34 @@
         formIframe(`<iframe src="https://rt.pornhub.com/embed/${data}" frameborder="0" width="560" height="315" scrolling="no" allowfullscreen></iframe>`, node);
     }
 
+    function formGoFile(url, node) {
+        axios.request({
+            method: "get",
+            url: url,
+            headers: {
+                'Accept': 'application/json',
+            }
+        }).then(data => {
+            console.log(data.data.data.files);
+            Object.values(data.data.data.files).forEach(file => {
+                let mimetype = file.mimetype.split('/')[0];
+                switch (mimetype) {
+                    case 'audio':
+                        formMusicPlayer(file.link, node);
+                        break;
+                    case 'image':
+                        formImageDiv(file.link, node);
+                        break;
+                    case 'video':
+                        formVideoDiv(file.link, node);
+                        break;
+                    default:
+                        break;
+                }
+            });
+        });
+    }
+
     function process_qr_data(qr_data, image_node, spliter = '|') {
         let [url_test, tag_test] = [null, null];
         if (spliter === '|') {
@@ -488,7 +510,7 @@
             url_test = split_code.join('-');
         }
 
-        console.log(tag_test, url_test, qr_data.entry_data.type, qr_data.entry_data.file_type);
+        // console.log(tag_test, url_test, qr_data.entry_data.type, qr_data.entry_data.file_type);
 
         switch (qr_data.entry_data.type) {
             case 'image':
@@ -509,6 +531,9 @@
                 break;
             case 'custom':
                 switch(qr_data.entry_data.file_type) {
+                    case 'gofile':
+                        formGoFile(url_test, image_node);
+                        break;
                     case 'pornhub':
                         formPornHub(url_test, image_node);
                         break;
