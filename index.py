@@ -2,6 +2,7 @@ import json
 import os
 import re
 from io import BytesIO
+from contextlib import closing
 
 import qrcode
 import requests
@@ -10,7 +11,7 @@ from bson import json_util
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_pymongo import PyMongo
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFile
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = os.getenv('MONGODB_URI')[1:-1] if os.path.isfile('now.json') else os.getenv('MONGODB_URI')
@@ -22,6 +23,16 @@ ses.headers.update({"X-Device-Token": os.getenv('DTF_TOKEN'), "x-this-is-csrf": 
 YANDEX_REGEX = r"/album/(?P<album>\d+)(?:/track/(?P<track>\d+))?|users/(?P<user>.+)/playlists/(?P<playlist>\d+)"
 YANDEX_PATTERN = re.compile(YANDEX_REGEX)
 
+def get_image_size(uri):
+    with closing(requests.get(uri, stream=True, timeout=16)) as response:
+        p = ImageFile.Parser()
+        for data in response.iter_content(128):
+            if not data:
+                break
+            p.feed(data)
+            if p.image:
+                return p.image.size[0], p.image.size[1]
+        return 300, 300
 
 def generate_qr_code(bg_size, qr_data):
     background = Image.new('RGBA', bg_size, (0, 0, 0, 0))
@@ -78,8 +89,11 @@ def parse_custom_text(text: str):
             response = requests.head(text).headers.get('content-type')
             if response:
                 registry = response.split('/')[0]
-                if registry in ('audio', 'image', 'video'):
+                if registry in ('audio', 'video'):
                     text_data = text
+                    text_type = registry
+                elif registry in ('image'):
+                    text_data = {'text': text, 'size': get_image_size(text)}
                     text_type = registry
     return text_data, text_type
 
@@ -144,6 +158,9 @@ def qrcodes_generate():
                 qr_data, file_type = parse_custom_text(entry.get('data').get('text'))
                 if any(i == 'error' for i in (qr_data, file_type)):
                     continue
+                if isinstance(qr_data, dict):
+                    bg_size = qr_data.get('size')
+                    qr_data = qr_data.get('text')
                 qr_code = generate_qr_code(bg_size, qr_data)
                 dtf_response = ses.post('https://api.dtf.ru/v1.8/uploader/upload', files={f'file_0': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
                 qrify_result_list.append({
