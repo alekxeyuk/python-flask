@@ -4,6 +4,7 @@ import re
 from io import BytesIO
 from contextlib import closing
 
+import numpy
 import qrcode
 import requests
 import validators
@@ -36,16 +37,10 @@ def get_image_size(uri):
 
 def generate_qr_code(bg_size, qr_data):
     background = Image.new('RGBA', bg_size, (0, 0, 0, 0))
-    qr = qrcode.QRCode(
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
-        box_size=3 if min(bg_size) < 300 else 6,
-        border=2,
-    )
-    qr.add_data(qr_data)
-    qr.make(fit=True)
-    qr_img = qr.make_image(fill_color="black", back_color="white")
-    background.paste(qr_img, (0, 0))
-    if qr.box_size != 3:
+    a = numpy.random.rand(300, 300, 4) * 255
+    im_out = Image.fromarray(a.astype('uint8')).convert('RGBA')
+    background.paste(im_out, (0, 0))
+    if min(bg_size) >= 300:
         ImageDraw.Draw(background).text((4, 0), 'prostagma? qr-nsfw v2', (0, 0, 0))
     buffer = BytesIO()
     background.save(buffer, 'png')
