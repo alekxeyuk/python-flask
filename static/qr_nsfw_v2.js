@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW
 // @namespace    http://dtf.ru/
-// @version      2.0.9
+// @version      2.1.0
 // @description  Watch NSFW content on DTF using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -301,6 +301,8 @@
         if (!document.querySelector('#qr-cmnt-btn')) {
             addCommentParseButton();
         }
+
+        addMusicPlaylist();
     }
 
     function check(changes, observer) {
@@ -722,9 +724,85 @@
         referenceNode.parentNode.insertBefore(entry, referenceNode.nextSibling);
     }
 
+    function playlistObserver() {
+        if(!PLayListObserverExist) {
+            PLayListObserverExist = true;
+            let eee = document.querySelector('.floating_player');
+
+            let ob = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (eee.firstChild.getAttribute('data-state') === 'ended') {
+                        if (music_object.length) {
+                            music_object[0].click();
+                            music_object[0].remove();
+                            music_object.shift();
+                        } else {
+                            console.log("No More Music");
+                        }
+                    }
+                });
+            });
+
+            ob.observe(eee, {
+                attributes: true,
+                attributeFilter: ['data-state'],
+                subtree: true
+            });
+        } else {
+            console.log("PLayListObserverExist");
+        }
+    }
+
+    function addMusicPlaylist() {
+        let music_list = document.querySelectorAll('.block-audio__wrapper');
+        if (music_list.length >= 2) {
+            let content = document.querySelector('.content--full');
+            if (!content.querySelector('.l-fa-center')) {
+                let container = document.createElement('div');
+                container.setAttribute('class', 'layout--a l-flex l-fa-center l-mv-20');
+                content.insertBefore(container, content.firstChild);
+            }
+            let playListCreateButton = document.createElement('div');
+            playListCreateButton.innerHTML = '<div class="audio_listen_button playlist_button l-flex l-fa-center l-ml-30 lm-ml-20 l-fs-15"><svg class="icon icon--ui_headphones" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><use xlink:href="#ui_headphones"></use></svg><span class="l-ml-8">PlayList</span></div>';
+            content.querySelector('.l-fa-center').appendChild(playListCreateButton);
+            content.querySelector('.playlist_button').onclick = () => {
+                music_object = [];
+                let referenceNode = document.querySelector('body');
+                let pPlNode = referenceNode.querySelector('.music_playlist');
+                if (pPlNode) {
+                    console.log('playlistnode already exist');
+                    pPlNode.innerHTML = '';
+                } else {
+                    let playList = document.createElement('div');
+                    playList.classList.add('music_playlist');
+                    playList.setAttribute('style', 'display: none;');
+                    referenceNode.appendChild(playList);
+                    pPlNode = playList;
+                }
+                music_list.forEach(el => {
+                    let mNode = document.createElement('div');
+                    mNode.setAttribute('class', 'audio_listen_button');
+                    mNode.setAttribute('data-src', el.firstElementChild.attributes.src.textContent);
+                    mNode.setAttribute('data-title', el.firstElementChild.attributes.title.textContent);
+                    mNode.setAttribute('data-duration', el.firstElementChild.attributes["data-duration"].textContent);
+                    mNode.setAttribute('data-entry-url', el.firstElementChild.attributes["data-entry-url"].textContent);
+                    mNode.setAttribute('air-click', 'Listen audio entry');
+                    mNode.setAttribute('data-gtm', 'audio_version_start');
+                    music_object.push(mNode);
+                    pPlNode.appendChild(mNode);
+                })
+                music_object[0].click();
+                music_object[0].remove();
+                music_object.shift();
+            }
+            playlistObserver();
+        }
+    }
+
     addQrButton();
     addPopUp();
-
+    var PLayListObserverExist = false;
+    var music_object = [];
 
     if (GM_getValue("darkTheme", false)) {
         GM_addStyle(JSON.parse(GM_getResourceText ("customCSS")).css.slice(33, -1));
