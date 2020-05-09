@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         QR-NSFW v2.0
+// @name         QR-NSFW
 // @namespace    http://dtf.ru/
-// @version      2.0.7
+// @version      2.0.9
 // @description  Watch NSFW content on DTF using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -715,7 +715,7 @@
 
     function addQrButton() {
         let referenceNode = document.querySelector('.creation_button');
-        referenceNode.setAttribute("class", "creation_button main_menu__write-button ui-button ui-button--12 ui-button--small lm-hidden l-mr-5");
+        referenceNode.setAttribute("class", "creation_button l-mr-5");
         let entry = document.createElement('div');
         entry.innerHTML = '<img id="qr-btn" src="https://leonardo.osnova.io/f44b037e-389d-4ed7-902c-83aeca953095/" height="32"><div id="qr-notif" class="messenger-panel__down" style="display: none;" data-v-d4ebc8c2=""><div id="qr-text" class="messenger-panel__down-head" data-v-d4ebc8c2="">Попробуйте еще раз</div> </div>';
         entry.onclick = parseMainBodyFunc;
@@ -731,4 +731,5 @@
     }
     GM_addStyle(GM_getResourceText ("fotorama").replace('fotorama.png', 'https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.png'));
     GM_addStyle('.andropov_image__inner {background: none !important;}');
+    GM_addStyle('.ce-toolbar__tools-item, .ce-toolbar__tools-search {padding-left: 16px;}');
 })();
