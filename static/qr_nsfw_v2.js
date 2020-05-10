@@ -786,6 +786,7 @@
                     mNode.setAttribute('data-title', el.firstElementChild.attributes.title.textContent);
                     mNode.setAttribute('data-duration', el.firstElementChild.attributes["data-duration"].textContent);
                     mNode.setAttribute('data-entry-url', el.firstElementChild.attributes["data-entry-url"].textContent);
+                    mNode.setAttribute('data-hash', el.firstElementChild.attributes["data-hash"].textContent);
                     mNode.setAttribute('air-click', 'Listen audio entry');
                     mNode.setAttribute('data-gtm', 'audio_version_start');
                     music_object.push(mNode);
