@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW
 // @namespace    http://dtf.ru/
-// @version      2.1.0
+// @version      2.1.1
 // @description  Watch NSFW content on DTF using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
