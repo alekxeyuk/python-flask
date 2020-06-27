@@ -15,6 +15,7 @@ from flask_pymongo import PyMongo
 from PIL import Image, ImageDraw, ImageFile
 
 app = Flask(__name__)
+print(os.getenv('MONGODB_URI'), os.path.isfile('now.json'))
 app.config["MONGO_URI"] = os.getenv('MONGODB_URI')[1:-1] if os.path.isfile('now.json') else os.getenv('MONGODB_URI')
 CORS(app)
 mongo = PyMongo(app)
