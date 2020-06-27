@@ -180,3 +180,7 @@ def qrcodes_decode():
             found_uuids.add(_.get('qr_uuid'))
         return jsonify({'success': found, 'not_qr': list(set(request_json.get('uuids')).difference(found_uuids))})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
+
+@app.route('/v1/permission', methods=['GET'])
+def permission():
+    return jsonify({"rc": 200, "rm": "", "data": {"access": True}})
