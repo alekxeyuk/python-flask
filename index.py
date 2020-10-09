@@ -132,14 +132,21 @@ def qrcodes_generate():
                 file_type = entry.get('data').get('type') if entry_type == 'image' else 'mp3'
                 qr_data = f"{entry['data']['uuid']}|{file_type}"
                 qr_code = generate_qr_code(bg_size, qr_data)
-                dtf_response = ses.post('https://api.dtf.ru/v1.8/uploader/upload', files={f'file_0': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
+                dtf_response = ses.post('https://api.dtf.ru/v1.9/uploader/upload', files={f'file_0': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
+                # fucking around new dtf CDN
+                dirty_hack = ses.get(f"https://leonardo.osnova.io/{dtf_response['result'][0]['data']['uuid']}", stream=True)
+                uuid_for_db = ses.post('https://dtf.ru/andropov/upload', files={f'file_0': ('file.png', dirty_hack.content, 'image/png')}).json()['result'][0]['data']['uuid']
+                del dirty_hack
+                # stop fucking
                 qrify_result_list.append({
                     'uuid': entry['data']['uuid'],
                     'qr_uuid': dtf_response['result'][0]['data']['uuid'],
                     'qr_data': qr_data,
                     'entry_data': {'type': entry_type, 'file_type': file_type}
                 })
-                mongo.db.codes.insert_one(qrify_result_list[-1].copy())
+                db_dict = qrify_result_list[-1].copy()
+                db_dict.update({'qr_uuid': uuid_for_db})
+                mongo.db.codes.insert_one(db_dict)
             elif entry_type == 'custom':
                 db_check = mongo.db.codes.find_one({'qr_data': entry['data']['text']})
                 if db_check:
