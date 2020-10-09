@@ -1,4 +1,5 @@
 import json
+import sys
 import os
 import re
 from io import BytesIO
@@ -96,7 +97,7 @@ def parse_custom_text(text: str):
 @app.route("/")
 def home_page():
     online_users = mongo.db.users.find_one({'online': True})
-    return jsonify({'result': json.loads(json_util.dumps(online_users))})
+    return jsonify({'result': json.loads(json_util.dumps(online_users)), 'python_version': sys.version})
 
 
 @app.route('/v1/qrcodes/insert', methods=['POST'])
