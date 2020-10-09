@@ -163,7 +163,7 @@ def qrcodes_generate():
                 if isinstance(qr_data, dict):
                     bg_size = qr_data.get('size')
                     qr_data = qr_data.get('text')
-                qr_code = generate_qr_code(bg_size, qr_data)
+                qr_code = generate_qr_code(bg_size)
                 dtf_response = ses.post('https://api.dtf.ru/v1.9/uploader/upload', files={f'file_0': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
                 dtf_qr_uuid = dtf_response['result'][0]['data']['uuid']
                 # fucking around new dtf CDN
