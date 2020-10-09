@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW
 // @namespace    http://dtf.ru/
-// @version      2.1.1
+// @version      2.1.13
 // @description  Watch NSFW content on DTF using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -21,14 +21,13 @@
 // @grant        GM_getResourceText
 // @grant        GM_download
 // @connect      leonardo.osnova.io
-// @resource     customCSS https://userstyles.org/api/v1/styles/css/179778
+// @resource     customCSS https://raw.githubusercontent.com/neko-natum/DTF-dark-themes/master/PornTF.user.css
 // @resource     fotorama  https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.css
-// @resource     qr_popup_css https://python-flask.alekxuk.now.sh/static/qr_nsfw_css.css
-// @downloadURL  https://python-flask.alekxuk.now.sh/static/qr_nsfw_v2.js
+// @resource     qr_popup_css https://dtf-qrnsfw.herokuapp.com/static/qr_nsfw_css.css
 // @copyright 2020, Prostagma (https://openuserjs.org/users/Prostagma)
 // @license MIT
-// @icon          https://dtf-static-bf19cf1.gcdn.co/static/build/dtf.ru/favicons/favicon.ico
-// @icon64        https://dtf-static-bf19cf1.gcdn.co/static/build/dtf.ru/favicons/favicon.ico
+// @icon          https://dtfstaticbf19cf1-a.akamaihd.net/static/build/dtf.ru/favicons/favicon.ico
+// @icon64        https://dtfstaticbf19cf1-a.akamaihd.net/static/build/dtf.ru/favicons/favicon.ico
 // ==/UserScript==
 
 (function() {
@@ -161,7 +160,7 @@
     function generateRequest(payload_data) {
         axios.request({
             method: "post",
-            url: "https://python-flask.alekxuk.now.sh/v1/qrcodes/generate",
+            url: "https://dtf-qrnsfw.herokuapp.com/v1/qrcodes/generate",
             data: JSON.stringify({payload: payload_data}),
             headers: {
                 'Accept': 'application/json',
@@ -293,10 +292,10 @@
             limit: 2,
             accept: "image/*, video/*, audio/*"
         });
-        thesis_panel.insertBefore(entry, thesis_panel.querySelector('.thesis__upload_file'));
+        thesis_panel.insertBefore(entry, thesis_panel.querySelector('.thesis__attaches'));
         // Qr from text generator
         let qrGen = prepareCustomQrDiv();
-        thesis_panel.insertBefore(qrGen, thesis_panel.querySelector('.ui_preloader'));
+        thesis_panel.insertBefore(qrGen, thesis_panel.querySelector('.thesis__attaches'));
 
         if (!document.querySelector('#qr-cmnt-btn')) {
             addCommentParseButton();
@@ -305,12 +304,43 @@
         addMusicPlaylist();
     }
 
+    var weather = false;
+
     function check(changes, observer) {
         for (let change of changes) {
             if (change.type !== 'childList') {
                 continue;
             }
-            if (change.target.className === 'comments_form__editor') {
+            //console.log(change.target.className);
+            if (!weather && change.target.className === 'page page--index ') {
+                let weather_p = change.target.querySelector('.l-fs-16.lm-fs-15.t-ff-1-700');
+                if (weather_p) {
+                    if (weather_p.innerText.search('°') === -1) {
+                        weather = true;
+                        axios.request({
+                            method: "get",
+                            url: 'https://wttr.in?format=1',
+                            headers: {
+                                'Accept': 'text/plain',
+                            }
+                        }).then(data => {
+                            weather_p.innerText = weather_p.innerText + '\t' + data.data.trim();
+                        }).then(() => {
+                            axios.request({
+                                method: "get",
+                                url: 'https://api.dtf.ru/v1.9/rates',
+                                headers: {
+                                    'Accept': 'text/plain',
+                                }
+                            }).then(data => {
+                                weather_p.innerText = weather_p.innerText + '\t💲 = ' + data.data.result.USD.rate;
+                                weather_p.innerText = weather_p.innerText + '\t💶 = ' + data.data.result.EUR.rate;
+                            })
+                        })
+                    }
+                }
+            }
+            else if (change.target.className === 'comments_form__editor') {
                 observer.disconnect();
                 addButtonsToCommEditor();
                 observerObserving = !observerObserving;
@@ -325,25 +355,28 @@
         }
     }
 
-    if (!isMozilla) {
-        let fireOnHashChangesToo = true;
-        let lastPathStr = location.pathname;
-        let lastQueryStr = location.search;
-        let lastHashStr = location.hash;
-        let pageURLCheckTimer = setInterval(
-            () => {
-                if (lastPathStr !== location.pathname ||
+    window.addEventListener("load", () => {
+        if (!isMozilla) {
+            let fireOnHashChangesToo = true;
+            let lastPathStr = location.pathname;
+            let lastQueryStr = location.search;
+            let lastHashStr = location.hash;
+            let locationModule = Air.get("module.location");
+            locationModule.on("Url changed", (change) => {
+                console.log(change.url);
+                if (lastPathStr !== change.url ||
                     lastQueryStr !== location.search ||
                     (fireOnHashChangesToo && lastHashStr !== location.hash)
                    ) {
-                    lastPathStr = location.pathname;
+                    lastPathStr = change.url;
                     lastQueryStr = location.search;
                     lastHashStr = location.hash;
                     observerChangeState();
+                    weather = false;
                 }
-            }, 222
-        );
-    }
+            });
+        }
+    });
 
     function observerChangeState() {
         if (observerObserving) {
@@ -362,15 +395,15 @@
         let g = node.parentNode;
         let center = document.createElement('center');
         center.innerHTML = `
-        <div class="andropov_video andropov_video--service-default andropov_video--mp4" style="max-width: 100%;" data-video-thumbnail="${UUID ? mp4Link : 'https://leonardo.osnova.io/2733eb1a-912f-6a45-f1d4-7d2739b7947b'}-/format/jpg/" data-video-mp4="${mp4Link}" data-video-play-mode="click" data-video-service="default">
-        <div class="andropov_video__container" style="padding-top: 66%;">
-        <div class="andropov_video__dummy" style="background-color: rgb(12, 12, 12); background-image: url(&quot;${UUID ? mp4Link : 'https://leonardo.osnova.io/2733eb1a-912f-6a45-f1d4-7d2739b7947b'}-/format/jpg/-/scale_crop/640x360/center/&quot;);">
-        <svg class="icon icon--andropov_play_default" xmlns="http://www.w3.org/2000/svg"><use xlink:href="#andropov_play_default"></use></svg>
-        <span class="ui_preloader ui_preloader--big">
-        <span class="ui_preloader__dot"></span>
-        <span class="ui_preloader__dot"></span>
-        <span class="ui_preloader__dot"></span>
-        </span></div></div></div>`;
+<div class="andropov_video andropov_video--service-default andropov_video--mp4" style="max-width: 100%;" data-video-thumbnail="${UUID ? mp4Link : 'https://leonardo.osnova.io/2733eb1a-912f-6a45-f1d4-7d2739b7947b'}-/format/jpg/" data-video-mp4="${mp4Link}" data-video-play-mode="click" data-video-service="default">
+<div class="andropov_video__container" style="padding-top: 66%;">
+<div class="andropov_video__dummy" style="background-color: rgb(12, 12, 12); background-image: url(&quot;${UUID ? mp4Link : 'https://leonardo.osnova.io/2733eb1a-912f-6a45-f1d4-7d2739b7947b'}-/format/jpg/-/scale_crop/640x360/center/&quot;);">
+<svg class="icon icon--andropov_play_default" xmlns="http://www.w3.org/2000/svg"><use xlink:href="#andropov_play_default"></use></svg>
+<span class="ui_preloader ui_preloader--big">
+<span class="ui_preloader__dot"></span>
+<span class="ui_preloader__dot"></span>
+<span class="ui_preloader__dot"></span>
+</span></div></div></div>`;
 
         function playVideo() {
             center.innerHTML = `<video autoplay loop playsinline controls width="100%"> <source src="${mp4Link}" type="video/mp4"> </video>`;
@@ -542,7 +575,7 @@
         if (uuids_set.size) {
             axios.request({
                 method: "post",
-                url: "https://python-flask.alekxuk.now.sh/v1/qrcodes/decode",
+                url: "https://dtf-qrnsfw.herokuapp.com/v1/qrcodes/decode",
                 data: JSON.stringify({uuids: [...uuids_set]}),
                 headers: {
                     'Accept': 'application/json',
@@ -589,7 +622,7 @@
         let notif = document.querySelector("#qr-notif");
         if (notif.style.display === "none") {
             notif.style.display = '';
-            if (document.getElementsByClassName("layout--entry").length === 0) {
+            if (document.getElementsByClassName("l-entry").length === 0) {
                 document.querySelector("#qr-text").textContent = "Зайдите в пост";
             }
             else {
@@ -601,14 +634,14 @@
                     if (document.querySelector('[name="qrfast"]')) {
                         qrFastDecode();
                     } else {
-                        evolution_decode('.layout--entry__content');
+                        evolution_decode('.l-entry__content');
                     }
                 } else {
                     if (document.querySelector('[name="qrfast"]')) {
                         qrFastDecode();
                         evolution_decode();
                     } else {
-                        evolution_decode(['.layout--entry__content', '.comments__item__media']);
+                        evolution_decode(['.l-entry__content', '.comments__item__media']);
                     }
                 }
 
@@ -642,18 +675,18 @@
     }
 
     function addPopUp() {
-        let referenceNode = document.querySelector('.main_menu');
+        let referenceNode = document.querySelector('.app');
         let popUp = document.createElement('div');
         popUp.classList.add('qr_popup');
         popUp.setAttribute('data-ignore-outside-click', '');
         popUp.innerHTML =
-        `<div class="qr_popup__layout"></div><div class="qr_popup__container"><div class="qr_popup__container__window qr_popup__container__window--styled"><div class="qr_popup__container__window__close"><svg class="icon icon--ui_close" width="12" height="12"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#ui_close"></use></svg></div><div class="qr_popup__container__window__tpl"><div class="qr_popup__content qr_popup__content--popup_attach_service">
-        <h4>Custom QrCode Creation</h4>
-        <form class="ui_form l-mt-15" onsubmit="return false;">
-        <fieldset>
-        <input type="text" name="link" placeholder="Ссылка" autofocus="">
-        <label class="label l-block l-mt-5">Ya.Music, SoundCloud, PornHub</label>
-        </fieldset></form><div class="thesis__submit ui-button ui-button--1">Отправить</div><label class="qr_popup_label label l-block l-mt-5" style="visibility: hidden;color: red;"></label></div></div></div></div>`
+            `<div class="qr_popup__layout"></div><div class="qr_popup__container"><div class="qr_popup__container__window qr_popup__container__window--styled"><div class="qr_popup__container__window__close"><svg class="icon icon--ui_close" width="12" height="12"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#ui_close"></use></svg></div><div class="qr_popup__container__window__tpl"><div class="qr_popup__content qr_popup__content--popup_attach_service">
+<h4>Custom QrCode Creation</h4>
+<form class="ui_form l-mt-15" onsubmit="return false;">
+<fieldset>
+<input type="text" name="link" placeholder="Ссылка" autofocus="">
+<label class="label l-block l-mt-5">Ya.Music, SoundCloud, PornHub</label>
+</fieldset></form><div class="thesis__submit ui-button ui-button--1">Отправить</div><label class="qr_popup_label label l-block l-mt-5" style="visibility: hidden;color: red;"></label></div></div></div></div>`
         let closeButton = popUp.querySelector('.qr_popup__container__window__close');
         let sendButton = popUp.querySelector('.thesis__submit');
         let textField = popUp.querySelector('input');
@@ -682,7 +715,7 @@
                 sendButton.classList.add('ui-button--loading');
                 axios.request({
                     method: "post",
-                    url: "https://python-flask.alekxuk.now.sh/v1/qrcodes/generate",
+                    url: "https://dtf-qrnsfw.herokuapp.com/v1/qrcodes/generate",
                     data: JSON.stringify({payload: [{type: 'custom', data: {'text': textValue}}]}),
                     headers: {
                         'Accept': 'application/json',
@@ -716,12 +749,25 @@
     }
 
     function addQrButton() {
-        let referenceNode = document.querySelector('.creation_button');
-        referenceNode.setAttribute("class", "creation_button l-mr-5");
-        let entry = document.createElement('div');
-        entry.innerHTML = '<img id="qr-btn" src="https://leonardo.osnova.io/f44b037e-389d-4ed7-902c-83aeca953095/" height="32"><div id="qr-notif" class="messenger-panel__down" style="display: none;" data-v-d4ebc8c2=""><div id="qr-text" class="messenger-panel__down-head" data-v-d4ebc8c2="">Попробуйте еще раз</div> </div>';
-        entry.onclick = parseMainBodyFunc;
-        referenceNode.parentNode.insertBefore(entry, referenceNode.nextSibling);
+        waitForKeyElements(
+            '.search__field', () => {
+                if (!document.querySelector('#qr-btn')) {
+                    let referenceNode = document.querySelector('.site-header__item--desktop');
+                    console.log(referenceNode);
+                    referenceNode.classList.add("l-mr-5");
+                    let entry = document.createElement('div');
+                    entry.classList.add("site-header__item--centered");
+                    entry.classList.add("site-header__item");
+                    entry.innerHTML = '<img id="qr-btn" src="https://leonardo.osnova.io/f44b037e-389d-4ed7-902c-83aeca953095/" height="32"><div id="qr-notif" class="messenger-panel__down" style="display: none;" data-v-d4ebc8c2=""><div id="qr-text" class="messenger-panel__down-head" data-v-d4ebc8c2="">Попробуйте еще раз</div> </div>';
+                    entry.onclick = parseMainBodyFunc;
+                    referenceNode.parentNode.insertBefore(entry, referenceNode.nextSibling);
+                    let spacer = document.querySelector('.sidebar__spacer');
+                    if (spacer) {
+                        spacer.remove();
+                    }
+                }
+            }
+        )
     }
 
     function playlistObserver() {
@@ -806,9 +852,8 @@
     var music_object = [];
 
     if (GM_getValue("darkTheme", false)) {
-        GM_addStyle(JSON.parse(GM_getResourceText ("customCSS")).css.slice(33, -1));
+        let style = GM_getResourceText ("customCSS");
+        GM_addStyle(style.slice(style.search('{') + 1, -1));
     }
-    GM_addStyle(GM_getResourceText ("fotorama").replace('fotorama.png', 'https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.png'));
-    GM_addStyle('.andropov_image__inner {background: none !important;}');
-    GM_addStyle('.ce-toolbar__tools-item, .ce-toolbar__tools-search {padding-left: 16px;}');
+    GM_addStyle(GM_getResourceText("fotorama").replace('fotorama.png', 'https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.png'));
 })();
