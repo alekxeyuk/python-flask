@@ -168,7 +168,7 @@ def qrcodes_generate():
                 dtf_qr_uuid = dtf_response['result'][0]['data']['uuid']
                 # fucking around new dtf CDN
                 url = f'https://leonardo.osnova.io/{dtf_qr_uuid}/'
-                uuid_for_db = ses.get(f'https://dtf.ru/andropov/extract/render?url={url}').json()['result'][0]['data']['uuid']
+                uuid_for_db = ses.get(f'https://dtf.ru/andropov/extract?url={url}').json()['result'][0]['data']['uuid']
                 # stop fucking
                 qrify_result_list.append({
                     'uuid': None,
