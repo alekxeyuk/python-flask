@@ -134,8 +134,9 @@ def qrcodes_generate():
                 qr_code = generate_qr_code(bg_size, qr_data)
                 dtf_response = ses.post('https://api.dtf.ru/v1.9/uploader/upload', files={f'file_0': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
                 # fucking around new dtf CDN
-                print('test')
+                print('test', f"https://leonardo.osnova.io/{dtf_response['result'][0]['data']['uuid']}")
                 dirty_hack = ses.get(f"https://leonardo.osnova.io/{dtf_response['result'][0]['data']['uuid']}")
+                print('test 2')
                 uuid_for_db = ses.post('https://dtf.ru/andropov/upload', files={f'file_0': ('file.png', dirty_hack.content, 'image/png')}).json()['result'][0]['data']['uuid']
                 print('end test')
                 del dirty_hack
