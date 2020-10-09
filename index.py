@@ -128,7 +128,7 @@ def qrcodes_generate():
                         'entry_data': db_check.get('entry_data')
                     })
                     continue
-                bg_size = (300, 300) # if entry_type != 'image' else (entry['data']['width'], entry['data']['height'])
+                bg_size = (300, 300) if entry_type != 'image' else (entry['data']['width'], entry['data']['height'])
                 file_type = entry.get('data').get('type') if entry_type == 'image' else 'mp3'
                 qr_data = f"{entry['data']['uuid']}|{file_type}"
                 qr_code = generate_qr_code(bg_size, qr_data)

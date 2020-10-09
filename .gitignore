@@ -126,4 +126,4 @@ dmypy.json
 
 *.jpg
 *.mp3
-test.py
+test*.py
