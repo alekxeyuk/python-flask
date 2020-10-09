@@ -6,7 +6,6 @@ from io import BytesIO
 from contextlib import closing
 
 import numpy
-import qrcode
 import requests
 import validators
 from bson import json_util
@@ -36,7 +35,7 @@ def get_image_size(uri):
                 return p.image.size[0], p.image.size[1]
         return 300, 300
 
-def generate_qr_code(bg_size, qr_data):
+def generate_qr_code(bg_size):
     background = Image.new('RGBA', bg_size, (0, 0, 0, 0))
     a = numpy.random.rand(300, 300, 4) * 255
     im_out = Image.fromarray(a.astype('uint8')).convert('RGBA')
@@ -131,7 +130,7 @@ def qrcodes_generate():
                 bg_size = (300, 300) if entry_type != 'image' else (entry['data']['width'], entry['data']['height'])
                 file_type = entry.get('data').get('type') if entry_type == 'image' else 'mp3'
                 qr_data = f"{entry['data']['uuid']}|{file_type}"
-                qr_code = generate_qr_code(bg_size, qr_data)
+                qr_code = generate_qr_code(bg_size)
                 dtf_response = ses.post('https://api.dtf.ru/v1.9/uploader/upload', files={f'file_0': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
                 dtf_qr_uuid = dtf_response['result'][0]['data']['uuid']
                 # fucking around new dtf CDN
@@ -165,14 +164,21 @@ def qrcodes_generate():
                     bg_size = qr_data.get('size')
                     qr_data = qr_data.get('text')
                 qr_code = generate_qr_code(bg_size, qr_data)
-                dtf_response = ses.post('https://api.dtf.ru/v1.8/uploader/upload', files={f'file_0': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
+                dtf_response = ses.post('https://api.dtf.ru/v1.9/uploader/upload', files={f'file_0': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
+                dtf_qr_uuid = dtf_response['result'][0]['data']['uuid']
+                # fucking around new dtf CDN
+                url = f'https://leonardo.osnova.io/{dtf_qr_uuid}/'
+                uuid_for_db = ses.get(f'https://dtf.ru/andropov/extract/render?url={url}').json()['result'][0]['data']['uuid']
+                # stop fucking
                 qrify_result_list.append({
                     'uuid': None,
-                    'qr_uuid': dtf_response['result'][0]['data']['uuid'],
+                    'qr_uuid': dtf_qr_uuid,
                     'qr_data': qr_data,
                     'entry_data': {'type': entry_type, 'file_type': file_type}
                 })
-                mongo.db.codes.insert_one(qrify_result_list[-1].copy())
+                db_dict = qrify_result_list[-1].copy()
+                db_dict.update({'qr_uuid': uuid_for_db})
+                mongo.db.codes.insert_one(db_dict)
         return jsonify({'result': qrify_result_list})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
 
