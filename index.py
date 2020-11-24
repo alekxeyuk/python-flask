@@ -65,6 +65,7 @@ def parse_custom_text(text: str):
                         text_data, text_type = f'{album}|{track}', 'yamusic'
                 elif album:
                     response = ses.head(f'https://music.yandex.ru/handlers/album.jsx?album={album}')
+                    print(response.status_code)
                     if not response.status_code == 404:
                         text_data, text_type = f'{album}', 'yamusic'
                 elif user and playlist:
