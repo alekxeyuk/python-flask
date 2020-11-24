@@ -65,8 +65,14 @@ def parse_custom_text(text: str):
                         text_data, text_type = f'{album}|{track}', 'yamusic'
                 elif album:
                     response = ses.head(f'https://music.yandex.ru/handlers/album.jsx?album={album}')
+<<<<<<< HEAD
                     # if not response.status_code == 404:
                     text_data, text_type = f'{album}', 'yamusic'
+=======
+                    print(ses.get(f'https://music.yandex.ru/handlers/album.jsx?album={album}').json(), album, response.status_code)
+                    if not response.status_code == 404:
+                        text_data, text_type = f'{album}', 'yamusic'
+>>>>>>> 54b19a0aa75bd016dfad3a765167d0b46b41d1e6
                 elif user and playlist:
                     response = ses.get(f'https://music.yandex.ru/api/v2.1/handlers/playlist/{user}/{playlist}').json()
                     if not response.get('error'):
