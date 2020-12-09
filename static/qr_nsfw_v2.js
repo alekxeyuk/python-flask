@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW
 // @namespace    http://dtf.ru/
-// @version      2.1.13
+// @version      2.1.14
 // @description  Watch NSFW content on DTF using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -311,7 +311,6 @@
             if (change.type !== 'childList') {
                 continue;
             }
-            //console.log(change.target.className);
             if (!weather && change.target.className === 'page page--index ') {
                 let weather_p = change.target.querySelector('.l-fs-16.lm-fs-15.t-ff-1-700');
                 if (weather_p) {
@@ -802,15 +801,11 @@
     function addMusicPlaylist() {
         let music_list = document.querySelectorAll('.block-audio__wrapper');
         if (music_list.length >= 2) {
-            let content = document.querySelector('.content--full');
-            if (!content.querySelector('.l-fa-center')) {
-                let container = document.createElement('div');
-                container.setAttribute('class', 'layout--a l-flex l-fa-center l-mv-20');
-                content.insertBefore(container, content.firstChild);
-            }
+            let content = document.querySelector('.content-header');
             let playListCreateButton = document.createElement('div');
-            playListCreateButton.innerHTML = '<div class="audio_listen_button playlist_button l-flex l-fa-center l-ml-30 lm-ml-20 l-fs-15"><svg class="icon icon--ui_headphones" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><use xlink:href="#ui_headphones"></use></svg><span class="l-ml-8">PlayList</span></div>';
-            content.querySelector('.l-fa-center').appendChild(playListCreateButton);
+            playListCreateButton.setAttribute('class', 'content-header__item content-header__item--listen lm-hidden');
+            playListCreateButton.innerHTML = '<button class="playlist_button v-button v-button--default v-button--size-tiny" data-layout-desktop="icon,label" data-layout-mobile="icon,label"><div class="v-button__icon v-button__icon--new"><svg class="icon icon--v_headphones" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><use xlink:href="#v_headphones"></use></svg></div><span class="v-button__label">Listen</span></button>';
+            content.insertBefore(playListCreateButton, content.lastElementChild);
             content.querySelector('.playlist_button').onclick = () => {
                 music_object = [];
                 let referenceNode = document.querySelector('body');
