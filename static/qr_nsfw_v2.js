@@ -623,6 +623,9 @@
             notif.style.display = '';
             if (document.getElementsByClassName("l-entry").length === 0) {
                 document.querySelector("#qr-text").textContent = "Зайдите в пост";
+                setTimeout(() => {
+                    notif.style.display = "none";
+                }, 5000);
             }
             else {
                 document.querySelector("#qr-text").textContent = "Ищу картинки";
