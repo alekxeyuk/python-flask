@@ -191,3 +191,27 @@
 .v-mini-header {
     top: 45px !important;
 }
+
+.messenger-panel {
+    position: relative;
+    font-size: 13px;
+    line-height: 1.4em;
+}
+
+.messenger-panel__down {
+    position: absolute;
+    background: #fff;
+    color: #000;
+    top: 100%;
+    right: 0;
+    width: 375px;
+    -webkit-box-shadow: 0px 3px 5px rgba(116,116,116,0.25);
+    box-shadow: 0px 3px 5px rgba(116,116,116,0.25);
+}
+
+.messenger-panel__down-head {
+    font-weight: 500;
+    line-height: 1em;
+    border-bottom: 1px solid #f4f4f4;
+    padding: 12px 13px;
+}
