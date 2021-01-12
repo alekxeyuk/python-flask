@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW
 // @namespace    http://dtf.ru/
-// @version      2.1.14
+// @version      2.1.15
 // @description  Watch NSFW content on DTF using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -757,7 +757,7 @@
                     let entry = document.createElement('div');
                     entry.classList.add("site-header__item--centered");
                     entry.classList.add("site-header__item");
-                    entry.innerHTML = '<img id="qr-btn" src="https://leonardo.osnova.io/f44b037e-389d-4ed7-902c-83aeca953095/" height="32"><div id="qr-notif" class="messenger-panel__down" style="display: none;" data-v-d4ebc8c2=""><div id="qr-text" class="messenger-panel__down-head" data-v-d4ebc8c2="">Попробуйте еще раз</div> </div>';
+                    entry.innerHTML = '<img id="qr-btn" src="https://leonardo.osnova.io/f44b037e-389d-4ed7-902c-83aeca953095/" height="32"><div id="qr-notif" class="messenger-panel__down" style="display: none;"><div id="qr-text" class="messenger-panel__down-head">Попробуйте еще раз</div> </div>';
                     entry.onclick = parseMainBodyFunc;
                     referenceNode.parentNode.insertBefore(entry, referenceNode.nextSibling);
                     let spacer = document.querySelector('.sidebar__spacer');
