@@ -1,3 +1,4 @@
+import datetime
 import json
 import sys
 import os
@@ -106,6 +107,7 @@ def qrcodes_insert():
         db_check = mongo.db.codes.find_one({'qr_uuid': request_json['qr_uuid']})
         if db_check:
             return jsonify({'result': 'QRCode already exist'})
+        request_json.update({"last_modified": datetime.datetime.utcnow()})
         mongo.db.codes.insert_one(request_json)
         return jsonify({'result': 'QRCode Inserted Successfully'})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
@@ -141,7 +143,8 @@ def qrcodes_generate():
                     'uuid': entry['data']['uuid'],
                     'qr_uuid': dtf_qr_uuid,
                     'qr_data': qr_data,
-                    'entry_data': {'type': entry_type, 'file_type': file_type}
+                    'entry_data': {'type': entry_type, 'file_type': file_type},
+                    'last_modified': datetime.datetime.utcnow()
                 })
                 db_dict = qrify_result_list[-1].copy()
                 db_dict.update({'qr_uuid': uuid_for_db})
@@ -174,7 +177,8 @@ def qrcodes_generate():
                     'uuid': None,
                     'qr_uuid': dtf_qr_uuid,
                     'qr_data': qr_data,
-                    'entry_data': {'type': entry_type, 'file_type': file_type}
+                    'entry_data': {'type': entry_type, 'file_type': file_type},
+                    'last_modified': datetime.datetime.utcnow()
                 })
                 db_dict = qrify_result_list[-1].copy()
                 db_dict.update({'qr_uuid': uuid_for_db})
