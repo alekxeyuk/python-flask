@@ -1,12 +1,14 @@
 // ==UserScript==
 // @name         QR-NSFW
 // @namespace    http://dtf.ru/
-// @version      2.1.15
-// @description  Watch NSFW content on DTF using qr-codes magic!
+// @version      2.1.16
+// @description  Watch NSFW content on OCHOBA sites (DTF, TJ, VC) using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
 // @author       Neko Natum
 // @match        https://dtf.ru/*
+// @match        https://tjournal.ru/*
+// @match        https://vc.ru/*
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @require      https://gist.github.com/raw/2625891/waitForKeyElements.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.js
@@ -31,6 +33,7 @@
 // ==/UserScript==
 
 (function() {
+    var site_name = window.location.hostname;
     var qrs_cache = new Object();
     var not_qr_cache = new Set();
     let isMozilla = window.navigator.userAgent.includes('Firefox');
@@ -244,7 +247,7 @@
                         console.log(item);
                     });
                     fd.set('render', false);
-                    upload_files(fd, "https://dtf.ru/andropov/upload");
+                    upload_files(fd, `https://${site_name}/andropov/upload`);
                 }
             }));
         };
@@ -327,7 +330,7 @@
                         }).then(() => {
                             axios.request({
                                 method: "get",
-                                url: 'https://api.dtf.ru/v1.9/rates',
+                                url: `https://api.${site_name}/v1.9/rates`,
                                 headers: {
                                     'Accept': 'text/plain',
                                 }
