@@ -117,14 +117,15 @@ def siasky_qr_generate():
     request_json = request.get_json(silent=True)
     if request_json and 'skylink' in request_json.get('payload', []):
         request_json = request_json['payload']
-        if db_check := mongo.db.codes.find_one({'skylink': request_json["skylink"]}):
+        skylink = request_json["skylink"]
+        if db_check := mongo.db.codes.find_one({'skylink': skylink}):
             return jsonify({'result': db_check.get('files')})
 
         qrify_file_list = []
-        skylink = f'https://siasky.net/{request_json["skylink"]}'
-        files = json.loads(ses.head(skylink).headers['Skynet-File-Metadata'])['subfiles']
+        skynet = f'https://siasky.net/{skylink}'
+        files = json.loads(ses.head(skynet).headers['Skynet-File-Metadata'])['subfiles']
         for file in files.values():
-            qr_size = get_image_size(f'{skylink}/{file["filename"]}') if 'image' in file['contenttype'] else (300, 300)
+            qr_size = get_image_size(f'{skynet}/{file["filename"]}') if 'image' in file['contenttype'] else (300, 300)
             file_type = file['contenttype'].split('/')[-1]
             qr_code = generate_qr_code(qr_size)
             dtf_response = ses.post('https://api.dtf.ru/v1.9/uploader/upload', files={f'file_0': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
@@ -141,9 +142,10 @@ def siasky_qr_generate():
                 'final_qr_uuid': uuid_for_db,
                 'last_modified': datetime.datetime.utcnow()
             })
-        # db_dict = qrify_file_list[-1].copy()
-        # db_dict.update({'qr_uuid': uuid_for_db})
-        # mongo.db.codes.insert_one(db_dict)
+        mongo.db.codes.insert_one({
+            'skylink': skylink,
+            'files': qrify_file_list
+        })
         return jsonify({'result': qrify_file_list})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
 
