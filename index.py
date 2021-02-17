@@ -112,6 +112,7 @@ def qrcodes_insert():
         return jsonify({'result': 'QRCode Inserted Successfully'})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
 
+
 @app.route('/v2/qrcodes/generate', methods=['POST'])
 def siasky_qr_generate():
     request_json = request.get_json(silent=True)
@@ -148,6 +149,20 @@ def siasky_qr_generate():
         })
         return jsonify({'result': qrify_file_list})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
+
+
+@app.route('/v2/qrcodes/decode', methods=['POST'])
+def siasky_qr_decode():
+    request_json = request.get_json(silent=True)
+    if request_json:
+        found = list()
+        found_uuids = set()
+        for _ in mongo.db.codes.find({"files": {"$elemMatch": {"final_qr_uuid": {"$in": request_json.get('uuids')}}}}):
+            found.append(json.loads(json_util.dumps(_)))
+            # found_uuids.add(_.get('final_qr_uuid'))
+        return jsonify({'success': found})#, 'not_qr': list(set(request_json.get('uuids')).difference(found_uuids))})
+    return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
+
 
 @app.route('/v1/qrcodes/generate', methods=['POST'])
 def qrcodes_generate():
