@@ -115,7 +115,8 @@ def qrcodes_insert():
 @app.route('/v2/qrcodes/generate', methods=['POST'])
 def siasky_qr_generate():
     request_json = request.get_json(silent=True)
-    if request_json and 'skylink' in request_json:
+    if request_json and 'skylink' in request_json.get('payload', []):
+        request_json = request_json['payload']
         if db_check := mongo.db.codes.find_one({'skylink': request_json["skylink"]}):
             return jsonify({'result': db_check.get('files')})
 
