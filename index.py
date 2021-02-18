@@ -25,6 +25,8 @@ ses.headers.update({"X-Device-Token": os.getenv('DTF_TOKEN'), "x-this-is-csrf": 
 YANDEX_REGEX = r"/album/(?P<album>\d+)(?:/track/(?P<track>\d+))?|users/(?P<user>.+)/playlists/(?P<playlist>\d+)"
 YANDEX_PATTERN = re.compile(YANDEX_REGEX)
 
+SKYNET = 'siasky.net'
+
 def get_image_size(uri):
     with closing(requests.get(uri, stream=True, timeout=16)) as response:
         p = ImageFile.Parser()
@@ -123,23 +125,23 @@ def siasky_qr_generate():
             return jsonify({'result': db_check.get('files')})
 
         qrify_file_list = []
-        skynet = f'https://siasky.net/{skylink}'
+        skynet = f'https://{SKYNET}/{skylink}'
         files = json.loads(ses.head(skynet).headers['Skynet-File-Metadata'])['subfiles']
         for file in files.values():
             qr_size = get_image_size(f'{skynet}/{file["filename"]}') if 'image' in file['contenttype'] else (300, 300)
             content_type, file_type  = file['contenttype'].split('/')
             qr_code = generate_qr_code(qr_size)
-            dtf_response = ses.post('https://api.dtf.ru/v1.9/uploader/upload', files={f'file_0': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
-            dtf_qr_uuid = dtf_response['result'][0]['data']['uuid']
+            skyportal_response = ses.post(f'https://{SKYNET}/skynet/skyfile', files={f'file': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
+            skylink = skyportal_response['skylink']
             # fucking around new dtf CDN
-            url = f'https://leonardo.osnova.io/{dtf_qr_uuid}/'
+            url = f'https://{SKYNET}/{skylink}'
             uuid_for_db = ses.get('https://dtf.ru/andropov/extract', params={'url': url}).json()['result'][0]['data']['uuid']
             # stop fucking
             qrify_file_list.append({
                 'filename': file['filename'],
                 'content_type': content_type,
                 'file_type': file_type,
-                'initial_qr_uuid': dtf_qr_uuid,
+                'initial_qr_uuid': url,
                 'final_qr_uuid': uuid_for_db,
                 'last_modified': datetime.datetime.utcnow()
             })
