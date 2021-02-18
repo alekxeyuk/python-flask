@@ -168,7 +168,7 @@ def siasky_qr_decode():
                 cache.add(_['skylink'])
             # found.append(json.loads(json_util.dumps(_)))
             # found_uuids.add(_.get('final_qr_uuid'))
-        return jsonify({'success': found_ids, 'not_qr': list(requested_ids.difference(found_ids))})
+        return jsonify({'success': list(found_ids), 'not_qr': list(requested_ids.difference(found_ids))})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
 
 
