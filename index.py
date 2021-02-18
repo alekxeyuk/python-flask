@@ -158,7 +158,7 @@ def siasky_qr_decode():
         requested_ids = set(request_json.get('uuids'))
         cache = set()
         found_ids = set()
-        for _ in mongo.db.codes.find({"files": {"$elemMatch": {"final_qr_uuid": {"$in": requested_ids}}}}):
+        for _ in mongo.db.codes.find({"files": {"$elemMatch": {"final_qr_uuid": {"$in": request_json.get('uuids')}}}}):
             if _['skylink'] not in cache:
                 for file in _['files']:
                     if file['final_qr_uuid'] in requested_ids:
