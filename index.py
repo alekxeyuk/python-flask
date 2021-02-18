@@ -155,12 +155,20 @@ def siasky_qr_generate():
 def siasky_qr_decode():
     request_json = request.get_json(silent=True)
     if request_json:
-        found = list()
-        found_uuids = set()
-        for _ in mongo.db.codes.find({"files": {"$elemMatch": {"final_qr_uuid": {"$in": request_json.get('uuids')}}}}):
-            found.append(json.loads(json_util.dumps(_)))
+        requested_ids = set(request_json.get('uuids'))
+        cache = set()
+        found_ids = set()
+        for _ in mongo.db.codes.find({"files": {"$elemMatch": {"final_qr_uuid": {"$in": requested_ids}}}}):
+            if _['skylink'] not in cache:
+                for file in _['files']:
+                    if file['final_qr_uuid'] in requested_ids:
+                        found_ids.add(file['final_qr_uuid'])
+                if len(found_ids) == len(requested_ids):
+                    break
+                cache.add(_['skylink'])
+            # found.append(json.loads(json_util.dumps(_)))
             # found_uuids.add(_.get('final_qr_uuid'))
-        return jsonify({'success': found})#, 'not_qr': list(set(request_json.get('uuids')).difference(found_uuids))})
+        return jsonify({'success': found_ids, 'not_qr': list(requested_ids.difference(found_ids))})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
 
 
