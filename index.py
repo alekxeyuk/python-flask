@@ -132,9 +132,9 @@ def siasky_qr_generate():
             content_type, file_type  = file['contenttype'].split('/')
             qr_code = generate_qr_code(qr_size)
             skyportal_response = ses.post(f'https://{SKYNET}/skynet/skyfile', files={f'file': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
-            skylink = skyportal_response['skylink']
+            file_skylink = skyportal_response['skylink']
             # fucking around new dtf CDN
-            url = f'https://{SKYNET}/{skylink}'
+            url = f'https://{SKYNET}/{file_skylink}'
             uuid_for_db = ses.get('https://dtf.ru/andropov/extract', params={'url': url}).json()['result'][0]['data']['uuid']
             # stop fucking
             qrify_file_list.append({
