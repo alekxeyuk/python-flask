@@ -127,7 +127,7 @@ def siasky_qr_generate():
         files = json.loads(ses.head(skynet).headers['Skynet-File-Metadata'])['subfiles']
         for file in files.values():
             qr_size = get_image_size(f'{skynet}/{file["filename"]}') if 'image' in file['contenttype'] else (300, 300)
-            file_type = file['contenttype'].split('/')[-1]
+            content_type, file_type  = file['contenttype'].split('/')
             qr_code = generate_qr_code(qr_size)
             dtf_response = ses.post('https://api.dtf.ru/v1.9/uploader/upload', files={f'file_0': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
             dtf_qr_uuid = dtf_response['result'][0]['data']['uuid']
@@ -137,7 +137,7 @@ def siasky_qr_generate():
             # stop fucking
             qrify_file_list.append({
                 'filename': file['filename'],
-                'content_type': file['contenttype'],
+                'content_type': content_type,
                 'file_type': file_type,
                 'initial_qr_uuid': dtf_qr_uuid,
                 'final_qr_uuid': uuid_for_db,
@@ -158,17 +158,17 @@ def siasky_qr_decode():
         requested_ids = set(request_json.get('uuids'))
         cache = set()
         found_ids = set()
+        return_data = list()
         for _ in mongo.db.codes.find({"files": {"$elemMatch": {"final_qr_uuid": {"$in": request_json.get('uuids')}}}}):
             if _['skylink'] not in cache:
                 for file in _['files']:
                     if file['final_qr_uuid'] in requested_ids:
                         found_ids.add(file['final_qr_uuid'])
+                        return_data.append(file | {'skylink': _['skylink']})
                 if len(found_ids) == len(requested_ids):
                     break
                 cache.add(_['skylink'])
-            # found.append(json.loads(json_util.dumps(_)))
-            # found_uuids.add(_.get('final_qr_uuid'))
-        return jsonify({'success': list(found_ids), 'not_qr': list(requested_ids.difference(found_ids))})
+        return jsonify({'success': return_data, 'not_qr': list(requested_ids.difference(found_ids))})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
 
 
