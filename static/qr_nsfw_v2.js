@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW
 // @namespace    http://dtf.ru/
-// @version      2.1.17
+// @version      2.1.18
 // @description  Watch NSFW content on OCHOBA sites (DTF, TJ, VC) using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -161,8 +161,8 @@
             console.log(data.data);
             data.data.result.forEach(qr_result => {
                 GM_download(qr_result.initial_qr_uuid, `${qr_result.final_qr_uuid}.png`);
-            })
-        })
+            });
+        });
     }
 
     function upload_files(formData, url) {
@@ -296,8 +296,8 @@
                             }).then(data => {
                                 weather_p.innerText = weather_p.innerText + '\t💲 = ' + data.data.result.USD.rate;
                                 weather_p.innerText = weather_p.innerText + '\t💶 = ' + data.data.result.EUR.rate;
-                            })
-                        })
+                            });
+                        });
                     }
                 }
             }
@@ -519,7 +519,9 @@
                         } else {
                             console.log(uuid, ' is CACHED NOT QR');
                         }
-                    }})});
+                    }
+                });
+            });
         }
         console.log(uuids_set);
         if (uuids_set.size) {
@@ -542,7 +544,7 @@
                 data.data.not_qr.forEach(not_qr => {
                     not_qr_cache.add(not_qr);
                 });
-            })
+            });
         }
     }
 
@@ -562,7 +564,7 @@
                     qr_data: archor.getAttribute('name'),
                     qr_uuid: sib_elem.querySelector('.andropov_image').attributes["data-image-src"].value.split('/')[3],
                     uuid: url_test
-                }
+                };
                 process_qr_data(data, sib_elem.querySelector('.andropov_image'), '-');
             }
         }
@@ -639,7 +641,7 @@
 <fieldset>
 <input type="text" name="link" placeholder="Ссылка" autofocus="">
 <label class="label l-block l-mt-5">Ya.Music, SoundCloud, PornHub</label>
-</fieldset></form><div class="thesis__submit ui-button ui-button--1">Отправить</div><label class="qr_popup_label label l-block l-mt-5" style="visibility: hidden;color: red;"></label></div></div></div></div>`
+</fieldset></form><div class="thesis__submit ui-button ui-button--1">Отправить</div><label class="qr_popup_label label l-block l-mt-5" style="visibility: hidden;color: red;"></label></div></div></div></div>`;
         let closeButton = popUp.querySelector('.qr_popup__container__window__close');
         let sendButton = popUp.querySelector('.thesis__submit');
         let textField = popUp.querySelector('input');
@@ -650,7 +652,7 @@
             textField.value = '';
             statusLabel.style.visibility = 'hidden';
             sendButton.classList.remove('ui-button--loading');
-        }
+        };
 
         function showError(label, errorText, button) {
             button.classList.remove('ui-button--loading');
@@ -681,7 +683,7 @@
                         data.data.result.forEach(qr_result => {
                             console.log('this', qr_result);
                             GM_download(qr_result.initial_qr_uuid, `${qr_result.final_qr_uuid}.png`);
-                        })
+                        });
                         closeButton.click();
                     } else {
                         showError(statusLabel, 'Error - server was not able to parse your link', sendButton);
@@ -697,7 +699,7 @@
             } else {
                 showError(statusLabel, 'Error - too short url', sendButton);
             }
-        }
+        };
         referenceNode.appendChild(popUp);
         GM_addStyle(GM_getResourceText ("qr_popup_css"));
     }
@@ -721,7 +723,7 @@
                     }
                 }
             }
-        )
+        );
     }
 
     function playlistObserver() {
@@ -787,11 +789,11 @@
                     mNode.setAttribute('data-gtm', 'audio_version_start');
                     music_object.push(mNode);
                     pPlNode.appendChild(mNode);
-                })
+                });
                 music_object[0].click();
                 music_object[0].remove();
                 music_object.shift();
-            }
+            };
             playlistObserver();
         }
     }
