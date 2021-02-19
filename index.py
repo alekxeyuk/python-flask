@@ -38,7 +38,7 @@ def get_image_size(uri):
                 return p.image.size[0], p.image.size[1]
         return 300, 300
 
-def generate_qr_code(bg_size):
+def generate_qr_code(bg_size: tuple) -> BytesIO:
     background = Image.new('RGBA', bg_size, (0, 0, 0, 0))
     a = numpy.random.rand(300, 300, 4) * 255
     im_out = Image.fromarray(a.astype('uint8')).convert('RGBA')
@@ -100,6 +100,11 @@ def cdn_fix(url: str) -> str:
     return ses.get('https://dtf.ru/andropov/extract', params={'url': url}).json()['result'][0]['data']['uuid']
 
 
+def upload_qr(qr_code: BytesIO) -> str:
+    skyportal_response = ses.post(f'https://{SKYNET}/skynet/skyfile', files={f'file': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
+    return cdn_fix(url := f'https://{SKYNET}/{skyportal_response["skylink"]}'), url
+
+
 @app.route("/")
 def home_page():
     online_users = mongo.db.users.find_one({'online': True})
@@ -135,10 +140,7 @@ def siasky_qr_generate():
             qr_size = get_image_size(f'{skynet}/{file["filename"]}') if 'image' in file['contenttype'] else (300, 300)
             content_type, file_type  = file['contenttype'].split('/')
             qr_code = generate_qr_code(qr_size)
-            skyportal_response = ses.post(f'https://{SKYNET}/skynet/skyfile', files={f'file': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
-            # fucking around new dtf CDN
-            uuid_for_db = cdn_fix(url := f'https://{SKYNET}/{skyportal_response["skylink"]}')
-            # stop fucking
+            uuid_for_db, url = upload_qr(qr_code)
             qrify_file_list.append({
                 'filename': file['filename'],
                 'content_type': content_type,
@@ -174,10 +176,7 @@ def custom_qr_generate():
         else:
             bg_size = (300, 300)
         qr_code = generate_qr_code(bg_size)
-        skyportal_response = ses.post(f'https://{SKYNET}/skynet/skyfile', files={f'file': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
-        # fucking around new dtf CDN
-        uuid_for_db = cdn_fix(url := f'https://{SKYNET}/{skyportal_response["skylink"]}')
-        # stop fucking
+        uuid_for_db, url = upload_qr(qr_code)
         qrify_file_list.append({
             'filename': qr_data,
             'content_type': 'custom',
