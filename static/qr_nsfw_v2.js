@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW
 // @namespace    http://dtf.ru/
-// @version      2.1.16
+// @version      2.1.17
 // @description  Watch NSFW content on OCHOBA sites (DTF, TJ, VC) using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -37,6 +37,7 @@
     var qrs_cache = new Object();
     var not_qr_cache = new Set();
     let isMozilla = window.navigator.userAgent.includes('Firefox');
+    const SKYNET_PORTAL = 'siasky.net';
     const UUID_REGEX = /([0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{12})/i;
 
     // TamperMonkey Buttons code block start
@@ -147,23 +148,10 @@
         },
     };
 
-    function filter(a, fun) {
-        let [small, big] = [ [], [] ];
-        for (var i = 0; i < a.length; i++) {
-            if (fun(a[i])) {
-                small.push(a[i]);
-            }
-            else {
-                big.push(a[i]);
-            }
-        }
-        return [small, big];
-    }
-
     function generateRequest(payload_data) {
         axios.request({
             method: "post",
-            url: "https://dtf-qrnsfw.herokuapp.com/v1/qrcodes/generate",
+            url: "https://dtf-qrnsfw.herokuapp.com/v2/qrcodes/generate",
             data: JSON.stringify({payload: payload_data}),
             headers: {
                 'Accept': 'application/json',
@@ -172,12 +160,12 @@
         }).then(data => {
             console.log(data.data);
             data.data.result.forEach(qr_result => {
-                GM_download(`https://leonardo.osnova.io/${qr_result.qr_uuid}/`, `${qr_result.uuid}.png`);
+                GM_download(qr_result.initial_qr_uuid, `${qr_result.final_qr_uuid}.png`);
             })
         })
     }
 
-    function upload_files(formData, url, upl_server = false) {
+    function upload_files(formData, url) {
         let notif = document.querySelector('#qr-notif');
         notif.style.display = '';
         let pT = notif.querySelector('#qr-text');
@@ -189,8 +177,7 @@
             url: url,
             data: formData,
             headers: {
-                'Accept': 'application/json',
-                'x-this-is-csrf': 'THIS IS SPARTA!'
+                'Accept': 'application/json'
             },
             onUploadProgress: (p) => {
                 prGS.max = p.total;
@@ -199,13 +186,7 @@
         }).then(data => {
             pT.innerHTML = '<b>DONE</b>';
             console.log(data.data);
-            if (!upl_server) {
-                generateRequest(data.data.result);
-            } else {
-                let uploadedFileUrl = `https://${upl_server.server}.gofile.io/getUpload?c=${data.data.data.code}`;
-                console.log(uploadedFileUrl);
-                generateRequest([{type: 'custom', data: {'text': uploadedFileUrl}}]);
-            }
+            generateRequest(data.data);
             setTimeout(() => {
                 notif.style.display = "none";
             }, 5000);
@@ -217,38 +198,16 @@
         entry.className = className;
         entry.innerHTML = '<img class="icon icon--ui_image" id="reply-btn" src="https://leonardo.osnova.io/f44b037e-389d-4ed7-902c-83aeca953095/" height="16">';
         entry.onclick = (event) => {
-            u.callFileUploader(t).then(((e) => {
-                let [small, big] = filter(e, (file) => {return file.size <= 50866700;});
+            u.callFileUploader(t).then(((files) => {
                 let fd = new FormData();
-                if (big.length) {
-                    axios.request({
-                        method: "get",
-                        url: 'https://apiv2.gofile.io/getServer',
-                        headers: {
-                            'Accept': 'application/json',
-                        }
-                    }).then(data => {
-                        console.log(data.data.data.server);
-                        let big_names = [];
-                        big.forEach((item) => {
-                            fd.append(`filesUploaded`, item);
-                            big_names.push(item.name);
-                            console.log(item);
-                        });
-                        fd.set('email', '9hanade.ahm@md0009.com');
-                        upload_files(fd, `https://${data.data.data.server}.gofile.io/upload`, {'server': data.data.data.server, 'names': big_names});
-                    });
-                } else {
-                    console.log('Uploading Small Files');
-                    console.log(small);
-                    fd = new FormData();
-                    small.forEach((item, index) => {
-                        fd.set(`file_${index}`, item);
-                        console.log(item);
-                    });
-                    fd.set('render', false);
-                    upload_files(fd, `https://${site_name}/andropov/upload`);
-                }
+                console.log('Uploading Files');
+                console.log(files);
+                fd = new FormData();
+                files.forEach((file) => {
+                    fd.append('files[]', file);
+                    console.log(file);
+                });
+                upload_files(fd, `https://${SKYNET_PORTAL}/skynet/skyfile?filename=qr_nsfw`);
             }));
         };
         return entry;
@@ -494,61 +453,50 @@
     }
 
     function process_qr_data(qr_data, image_node, spliter = '|') {
+        let url = `https://${SKYNET_PORTAL}/${qr_data.skylink}/${qr_data.filename}`
         let [url_test, tag_test] = [null, null];
-        if (spliter === '|') {
-            [url_test, tag_test] = qr_data.qr_data.split('|');
-        } else {
-            let split_code = qr_data.qr_data.split(spliter);
-            tag_test = split_code.pop();
-            url_test = split_code.join('-');
-        }
 
-        switch (qr_data.entry_data.type) {
-            case 'image':
-                switch(qr_data.entry_data.file_type) {
-                    case 'png':
-                    case 'jpg':
-                        formImageDiv(`https://leonardo.osnova.io/${qr_data.uuid}/`, image_node);
-                        break;
-                    case 'gif':
-                        formVideoDiv(`https://leonardo.osnova.io/${qr_data.uuid}/`, image_node, true);
-                        break;
-                    default:
-                        break;
-                }
-                break;
-            case 'audio':
-                formMusicPlayer(`https://leonardo.osnova.io/audio/${qr_data.uuid}/`, image_node);
-                break;
+        switch(qr_data.content_type) {
             case 'custom':
-                switch(qr_data.entry_data.file_type) {
+                switch(qr_data.file_type) {
                     case 'gofile':
-                        formGoFile(url_test, image_node);
+                        formGoFile(qr_data.filename, image_node);
                         break;
                     case 'pornhub':
-                        formPornHub(url_test, image_node);
+                        formPornHub(qr_data.filename, image_node);
                         break;
                     case 'soundcloud':
-                        formSoundCloud(url_test, image_node);
+                        formSoundCloud(qr_data.filename, image_node);
                         break;
                     case 'yamusic':
+                        [url_test, tag_test] = qr_data.filename.split('|');
                         formYaMusic({track: tag_test, album: url_test}, image_node);
                         break;
                     case 'yamusic_playlist':
+                        [url_test, tag_test] = qr_data.filename.split('|');
                         formYaMusic({playlist: tag_test, user: url_test}, image_node);
                         break;
                     case 'image':
-                        formImageDiv(url_test, image_node);
+                        formImageDiv(qr_data.filename, image_node);
                         break;
                     case 'video':
-                        formVideoDiv(url_test, image_node, false);
+                        formVideoDiv(qr_data.filename, image_node, false);
                         break;
                     case 'audio':
-                        formMusicPlayer(url_test, image_node);
+                        formMusicPlayer(qr_data.filename, image_node);
                         break;
                     default:
                         break;
                 }
+                break;
+            case 'image':
+                formImageDiv(url, image_node);
+                break;
+            case 'video':
+                formVideoDiv(url, image_node, false);
+                break;
+            case 'audio':
+                formMusicPlayer(url, image_node);
                 break;
             default:
                 break;
@@ -577,7 +525,7 @@
         if (uuids_set.size) {
             axios.request({
                 method: "post",
-                url: "https://dtf-qrnsfw.herokuapp.com/v1/qrcodes/decode",
+                url: "https://dtf-qrnsfw.herokuapp.com/v2/qrcodes/decode",
                 data: JSON.stringify({uuids: [...uuids_set]}),
                 headers: {
                     'Accept': 'application/json',
@@ -586,8 +534,8 @@
             }).then(data => {
                 console.log(data);
                 data.data.success.forEach(result => {
-                    document.querySelectorAll(`[uuid="${result.qr_uuid}"]`).forEach(comment_node => {
-                        qrs_cache[result.qr_uuid] = result;
+                    document.querySelectorAll(`[uuid="${result.final_qr_uuid}"]`).forEach(comment_node => {
+                        qrs_cache[result.final_qr_uuid] = result;
                         process_qr_data(result, comment_node);
                     });
                 });
@@ -720,18 +668,19 @@
                 sendButton.classList.add('ui-button--loading');
                 axios.request({
                     method: "post",
-                    url: "https://dtf-qrnsfw.herokuapp.com/v1/qrcodes/generate",
-                    data: JSON.stringify({payload: [{type: 'custom', data: {'text': textValue}}]}),
+                    url: "https://dtf-qrnsfw.herokuapp.com/v2/custom/generate",
+                    data: JSON.stringify({payload: {link: textValue}}),
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
                     }
                 }).then(data => {
+                    //console.log(data);
                     sendButton.classList.remove('ui-button--loading');
                     if (data.data.result.length) {
                         data.data.result.forEach(qr_result => {
-                            console.log(qr_result);
-                            GM_download(`https://leonardo.osnova.io/${qr_result.qr_uuid}/`, `${qr_result.qr_uuid}.png`);
+                            console.log('this', qr_result);
+                            GM_download(qr_result.initial_qr_uuid, `${qr_result.final_qr_uuid}.png`);
                         })
                         closeButton.click();
                     } else {
