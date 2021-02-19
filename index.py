@@ -5,6 +5,7 @@ import os
 import re
 from io import BytesIO
 from contextlib import closing
+from typing import Tuple
 
 import numpy
 import requests
@@ -100,7 +101,7 @@ def cdn_fix(url: str) -> str:
     return ses.get('https://dtf.ru/andropov/extract', params={'url': url}).json()['result'][0]['data']['uuid']
 
 
-def upload_qr(qr_code: BytesIO) -> str:
+def upload_qr(qr_code: BytesIO) -> Tuple[str, str]:
     skyportal_response = ses.post(f'https://{SKYNET}/skynet/skyfile', files={f'file': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
     return cdn_fix(url := f'https://{SKYNET}/{skyportal_response["skylink"]}'), url
 
