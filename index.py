@@ -96,6 +96,10 @@ def parse_custom_text(text: str):
     return text_data, text_type
 
 
+def cdn_fix(url: str) -> str:
+    return ses.get('https://dtf.ru/andropov/extract', params={'url': url}).json()['result'][0]['data']['uuid']
+
+
 @app.route("/")
 def home_page():
     online_users = mongo.db.users.find_one({'online': True})
@@ -132,10 +136,8 @@ def siasky_qr_generate():
             content_type, file_type  = file['contenttype'].split('/')
             qr_code = generate_qr_code(qr_size)
             skyportal_response = ses.post(f'https://{SKYNET}/skynet/skyfile', files={f'file': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
-            file_skylink = skyportal_response['skylink']
             # fucking around new dtf CDN
-            url = f'https://{SKYNET}/{file_skylink}'
-            uuid_for_db = ses.get('https://dtf.ru/andropov/extract', params={'url': url}).json()['result'][0]['data']['uuid']
+            uuid_for_db = cdn_fix(url := f'https://{SKYNET}/{skyportal_response["skylink"]}')
             # stop fucking
             qrify_file_list.append({
                 'filename': file['filename'],
@@ -152,6 +154,44 @@ def siasky_qr_generate():
         return jsonify({'result': qrify_file_list})
     return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
 
+
+@app.route('/v2/custom/generate', methods=['POST'])
+def custom_qr_generate():
+    request_json = request.get_json(silent=True)
+    if request_json and 'link' in request_json.get('payload', []):
+        request_json = request_json['payload']
+        link = request_json["link"]
+        if db_check := mongo.db.codes.find_one({'skylink': link}):
+            return jsonify({'result': db_check.get('files')})
+
+        qrify_file_list = []
+        qr_data, file_type = parse_custom_text(link)
+        if 'error'in (qr_data, file_type):
+            return jsonify({'error': 'Your link is broken, or it is not supported'})
+        if isinstance(qr_data, dict):
+            bg_size = qr_data.get('size')
+            qr_data = qr_data.get('text')
+        else:
+            bg_size = (300, 300)
+        qr_code = generate_qr_code(bg_size)
+        skyportal_response = ses.post(f'https://{SKYNET}/skynet/skyfile', files={f'file': ('file.png', qr_code.getbuffer(), 'image/png')}).json()
+        # fucking around new dtf CDN
+        uuid_for_db = cdn_fix(url := f'https://{SKYNET}/{skyportal_response["skylink"]}')
+        # stop fucking
+        qrify_file_list.append({
+            'filename': qr_data,
+            'content_type': 'custom',
+            'file_type': file_type,
+            'initial_qr_uuid': url,
+            'final_qr_uuid': uuid_for_db,
+            'last_modified': datetime.datetime.utcnow()
+        })
+        mongo.db.codes.insert_one({
+            'skylink': link,
+            'files': qrify_file_list
+        })
+        return jsonify({'result': qrify_file_list})
+    return jsonify({'error': 'Your json is broken, or you forgot Content-Type header'})
 
 @app.route('/v2/qrcodes/decode', methods=['POST'])
 def siasky_qr_decode():
