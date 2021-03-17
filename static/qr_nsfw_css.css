@@ -217,24 +217,28 @@
 }
 
 .wrapper {
-    padding-top: 0px im !important;
+    padding-top: 0px !important;
 }
 
-.wrapper .header {
+.wrapper > .header {
     box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2), 0 1px 10px 0 rgba(0, 0, 0, 0.19);
     order: 0 !important;
 }
 
-.wrapper .l-editor {
+.wrapper > .l-editor {
     margin-top: 10px !important;
 }
 
-.tab .tab__content {
+.tab > .tab__content {
     bottom: auto !important;
     padding: 18px 0px 0px 18px !important;
 }
 
-.tab--active .tab__label::after {
+.tab--active > .tab__label::after {
     bottom: 0 !important;
     top: auto !important;
+}
+
+.header > .header__content {
+    --height: 50px !important;
 }
