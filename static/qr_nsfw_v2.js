@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW
 // @namespace    http://dtf.ru/
-// @version      2.1.18
+// @version      2.1.19
 // @description  Watch NSFW content on OCHOBA sites (DTF, TJ, VC) using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -236,6 +236,8 @@
         let qrGen = prepareCustomQrDiv('ui-button ui-button--6 ui-button--only-icon editor__header-save-button');
         qrGen.style = 'margin-right: 10px;';
         let editor__header = change || document.querySelector('.header__right');
+        editor__header.classList.add('l-flex');
+        editor__header.classList.add('l-fa-center');
         if (isMozilla) { // not working piece of shit
             let ddd = document.querySelector('.header__right');
             ddd.insertBefore(qrGen, ddd.firstElementChild);
