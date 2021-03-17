@@ -233,3 +233,8 @@
     bottom: auto !important;
     padding: 18px 0px 0px 18px !important;
 }
+
+.tab--active .tab__label::after {
+    bottom: 0 !important;
+    top: auto !important;
+}
