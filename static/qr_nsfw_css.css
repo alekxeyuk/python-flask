@@ -215,3 +215,21 @@
     border-bottom: 1px solid #f4f4f4;
     padding: 12px 13px;
 }
+
+.wrapper {
+    padding-top: 0px im !important;
+}
+
+.wrapper .header {
+    box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2), 0 1px 10px 0 rgba(0, 0, 0, 0.19);
+    order: 0 !important;
+}
+
+.wrapper .l-editor {
+    margin-top: 10px !important;
+}
+
+.tab .tab__content {
+    bottom: auto !important;
+    padding: 18px 0px 0px 18px !important;
+}
