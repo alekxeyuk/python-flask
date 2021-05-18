@@ -135,8 +135,8 @@ def siasky_qr_generate():
             return jsonify({'result': db_check.get('files')})
 
         qrify_file_list = []
-        skynet = f'https://{SKYNET}/{skylink}'
-        files = json.loads(ses.head(skynet).headers['Skynet-File-Metadata'])['subfiles']
+        skynet = f'https://{SKYNET}/skynet/metadata/{skylink}'
+        files = ses.get(skynet).json()['subfiles']
         for file in files.values():
             qr_size = get_image_size(f'{skynet}/{file["filename"]}') if 'image' in file['contenttype'] else (300, 300)
             content_type, file_type  = file['contenttype'].split('/')
