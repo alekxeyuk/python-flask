@@ -162,7 +162,7 @@
 
 .layout__sticky {
     top: 45px;
-    height: calc(100vh - 45px) !important;
+    /*height: calc(100vh - 45px) !important;*/
 }
 
 .site-header {
