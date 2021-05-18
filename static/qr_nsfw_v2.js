@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW
 // @namespace    http://dtf.ru/
-// @version      2.1.20
+// @version      2.1.21
 // @description  Watch NSFW content on OCHOBA sites (DTF, TJ, VC) using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -237,6 +237,8 @@
         let qrGen = prepareCustomQrDiv('ui-button ui-button--6 ui-button--only-icon editor__header-save-button');
         qrGen.style = 'margin-right: 10px;';
         let editor__header = change || document.querySelector('.header__right');
+        //editor__header.classList.add('l-flex');
+        //editor__header.classList.add('l-fa-center');
         if (isMozilla) { // not working piece of shit
             let ddd = document.querySelector('.editor-cp__left');
             ddd.insertBefore(qrGen, ddd.firstElementChild);
@@ -308,7 +310,7 @@
                 observerObserving = !observerObserving;
                 break;
             }
-            else if (change.target.className === 'editor__body' && change.addedNodes[0].className === 'editor__actions') {
+            else if (change.target.className === 'editor__body' && change.addedNodes[0] && change.addedNodes[0].className === 'editor__actions') {
                 observer.disconnect();
                 addButtonsToPostEditor(change.target.querySelector('.editor-cp__left'));
                 observerObserving = !observerObserving;
@@ -323,20 +325,25 @@
             let lastPathStr = location.pathname;
             let lastQueryStr = location.search;
             let lastHashStr = location.hash;
-            let locationModule = Air.get("module.location");
-            locationModule.on("Url changed", (change) => {
-                console.log(change.url);
-                if (lastPathStr !== change.url ||
-                    lastQueryStr !== location.search ||
-                    (fireOnHashChangesToo && lastHashStr !== location.hash)
-                   ) {
-                    lastPathStr = change.url;
-                    lastQueryStr = location.search;
-                    lastHashStr = location.hash;
-                    observerChangeState();
-                    weather = false;
-                }
-            });
+            //let locationModule = Air.get("module.location");
+            //locationModule.on("Url changed", (change) => {
+            let pageURLCheckTimer = setInterval(
+                () => {
+                    if (
+                        lastPathStr !== location.pathname ||
+                        lastQueryStr !== location.search ||
+                        (fireOnHashChangesToo && lastHashStr !== location.hash)
+                       )
+                    {
+                        console.log(location.pathname);
+                        lastPathStr = location.pathname;
+                        lastQueryStr = location.search;
+                        lastHashStr = location.hash;
+                        observerChangeState();
+                        weather = false;
+                    }
+                }, 222
+            );
         }
     });
 
