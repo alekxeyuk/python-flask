@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW
 // @namespace    http://dtf.ru/
-// @version      2.1.19
+// @version      2.1.20
 // @description  Watch NSFW content on OCHOBA sites (DTF, TJ, VC) using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -38,6 +38,7 @@
     var not_qr_cache = new Set();
     let isMozilla = window.navigator.userAgent.includes('Firefox');
     const SKYNET_PORTAL = 'siasky.net';
+    const QRNSFW_PORTAL = 'dtf-qrnsfw.herokuapp.com';
     const UUID_REGEX = /([0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{12})/i;
 
     // TamperMonkey Buttons code block start
@@ -64,7 +65,7 @@
             '.thesis__panel', addButtonsToCommEditor
         );
         waitForKeyElements(
-            '.header__right', addButtonsToPostEditor
+            '.editor-cp__left', addButtonsToPostEditor
         );
     }
     else {
@@ -151,7 +152,7 @@
     function generateRequest(payload_data) {
         axios.request({
             method: "post",
-            url: "https://dtf-qrnsfw.herokuapp.com/v2/qrcodes/generate",
+            url: `https://${QRNSFW_PORTAL}/v2/qrcodes/generate`,
             data: JSON.stringify({payload: payload_data}),
             headers: {
                 'Accept': 'application/json',
@@ -236,10 +237,8 @@
         let qrGen = prepareCustomQrDiv('ui-button ui-button--6 ui-button--only-icon editor__header-save-button');
         qrGen.style = 'margin-right: 10px;';
         let editor__header = change || document.querySelector('.header__right');
-        editor__header.classList.add('l-flex');
-        editor__header.classList.add('l-fa-center');
         if (isMozilla) { // not working piece of shit
-            let ddd = document.querySelector('.header__right');
+            let ddd = document.querySelector('.editor-cp__left');
             ddd.insertBefore(qrGen, ddd.firstElementChild);
             ddd.insertBefore(entry, ddd.firstElementChild);
         }
@@ -309,9 +308,9 @@
                 observerObserving = !observerObserving;
                 break;
             }
-            else if (change.target.className === 'page page--editor') {
+            else if (change.target.className === 'editor__body' && change.addedNodes[0].className === 'editor__actions') {
                 observer.disconnect();
-                addButtonsToPostEditor(change.addedNodes[0].firstElementChild.firstElementChild.lastElementChild);
+                addButtonsToPostEditor(change.target.querySelector('.editor-cp__left'));
                 observerObserving = !observerObserving;
                 break;
             }
@@ -529,7 +528,7 @@
         if (uuids_set.size) {
             axios.request({
                 method: "post",
-                url: "https://dtf-qrnsfw.herokuapp.com/v2/qrcodes/decode",
+                url: `https://${QRNSFW_PORTAL}/v2/qrcodes/decode`,
                 data: JSON.stringify({uuids: [...uuids_set]}),
                 headers: {
                     'Accept': 'application/json',
@@ -672,7 +671,7 @@
                 sendButton.classList.add('ui-button--loading');
                 axios.request({
                     method: "post",
-                    url: "https://dtf-qrnsfw.herokuapp.com/v2/custom/generate",
+                    url: `https://${QRNSFW_PORTAL}/v2/custom/generate`,
                     data: JSON.stringify({payload: {link: textValue}}),
                     headers: {
                         'Accept': 'application/json',

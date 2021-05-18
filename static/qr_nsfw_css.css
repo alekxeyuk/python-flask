@@ -243,3 +243,10 @@
 .header > .header__content {
     --height: 50px !important;
 }
+
+@media (min-width: 1025px){
+.v-popup-fp-container--maximized {
+    top: 45px !important;
+    height: calc(100vh - 45px) !important;
+}
+}
