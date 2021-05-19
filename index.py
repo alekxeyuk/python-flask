@@ -138,7 +138,7 @@ def siasky_qr_generate():
         skynet = f'https://{SKYNET}/skynet/metadata/{skylink}'
         files = ses.get(skynet).json()['subfiles']
         for file in files.values():
-            qr_size = get_image_size(f'{skynet}/{file["filename"]}') if 'image' in file['contenttype'] else (300, 300)
+            qr_size = get_image_size(f'https://{SKYNET}/{skylink}/{file["filename"]}') if 'image' in file['contenttype'] else (300, 300)
             content_type, file_type  = file['contenttype'].split('/')
             qr_code = generate_qr_code(qr_size)
             uuid_for_db, url = upload_qr(qr_code)
