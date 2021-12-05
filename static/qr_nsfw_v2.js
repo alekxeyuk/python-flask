@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW
 // @namespace    http://dtf.ru/
-// @version      2.1.22
+// @version      2.1.23
 // @description  Watch NSFW content on OCHOBA sites (DTF, TJ, VC) using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -39,7 +39,7 @@
     var not_qr_cache = new Set();
     let isMozilla = window.navigator.userAgent.includes('Firefox');
     const SKYNET_PORTAL = 'siasky.net';
-    const QRNSFW_PORTAL = 'dtf-qrnsfw.herokuapp.com';
+    const QRNSFW_PORTAL = 'dtf-qrnsfw.fly.dev';
     const UUID_REGEX = /([0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{12})/i;
 
     // TamperMonkey Buttons code block start
@@ -198,7 +198,7 @@
     function prepareImageUploaderDiv(t, className = 'thesis__upload_file thesis__attach_something') {
         let entry = document.createElement('div');
         entry.className = className;
-        entry.innerHTML = '<img class="icon icon--ui_image" id="reply-btn" src="https://leonardo.osnova.io/f44b037e-389d-4ed7-902c-83aeca953095/" height="16">';
+        entry.innerHTML = '<img class="icon icon--ui_image" id="reply-btn" src="https://gist.githubusercontent.com/alekxeyuk/7e99e41fbf00d5772215811b2a7e456c/raw/33f91838d6af8277a2371a9e45d83044e0f90a1d/qr.svg" height="20">';
         entry.onclick = (event) => {
             u.callFileUploader(t).then(((files) => {
                 let fd = new FormData();
@@ -218,7 +218,7 @@
     function prepareCustomQrDiv(className = 'thesis__upload_file thesis__attach_something') {
         let entry = document.createElement('div');
         entry.className = className;
-        entry.innerHTML = '<img class="icon icon--ui_image" id="reply-btn" src="https://leonardo.osnova.io/352313d2-eed6-edef-4af8-8ffb18cfa7ea/" height="16">';
+        entry.innerHTML = '<img class="icon icon--ui_image" id="reply-btn" src="https://gist.githubusercontent.com/alekxeyuk/ff28e8646995c7efe9274a24078498f6/raw/99ad8b49f16d8f8c86e1b033b4200c7304e87f01/link.svg" height="16">';
         entry.onclick = (event) => {
             let qr_popup = document.querySelector('.qr_popup');
             let classes = ['qr_popup__container--shown', 'qr_popup__layout--shown'];
@@ -630,7 +630,7 @@
         if (commQrButton) {
             let commButon = document.createElement('div');
             commButon.style = 'float: right; padding: 10px 10px 0px 10px;';
-            commButon.innerHTML = '<img id="qr-cmnt-btn" src="https://leonardo.osnova.io/f44b037e-389d-4ed7-902c-83aeca953095/" height="32">';
+            commButon.innerHTML = '<img id="qr-cmnt-btn" src="https://gist.githubusercontent.com/alekxeyuk/7e99e41fbf00d5772215811b2a7e456c/raw/33f91838d6af8277a2371a9e45d83044e0f90a1d/qr.svg" height="32" style="cursor: pointer;">';
             commButon.onclick = parseCommentsOnlyFunc;
             commQrButton.parentNode.appendChild(commButon);
         }
@@ -721,7 +721,7 @@
                     let entry = document.createElement('div');
                     entry.classList.add("site-header__item--centered");
                     entry.classList.add("site-header__item");
-                    entry.innerHTML = '<img id="qr-btn" src="https://leonardo.osnova.io/f44b037e-389d-4ed7-902c-83aeca953095/" height="32"><div id="qr-notif" class="messenger-panel__down" style="display: none;"><div id="qr-text" class="messenger-panel__down-head">Попробуйте еще раз</div> </div>';
+                    entry.innerHTML = '<img id="qr-btn" src="https://gist.githubusercontent.com/alekxeyuk/7e99e41fbf00d5772215811b2a7e456c/raw/33f91838d6af8277a2371a9e45d83044e0f90a1d/qr.svg" height="32" style="cursor: pointer;"><div id="qr-notif" class="messenger-panel__down" style="display: none;"><div id="qr-text" class="messenger-panel__down-head">Попробуйте еще раз</div> </div>';
                     entry.onclick = parseMainBodyFunc;
                     referenceNode.parentNode.insertBefore(entry, referenceNode.nextSibling);
                     let spacer = document.querySelector('.sidebar__spacer');
