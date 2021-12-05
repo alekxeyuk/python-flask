@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW
 // @namespace    http://dtf.ru/
-// @version      2.1.21
+// @version      2.1.22
 // @description  Watch NSFW content on OCHOBA sites (DTF, TJ, VC) using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -30,6 +30,7 @@
 // @license MIT
 // @icon          https://dtfstaticbf19cf1-a.akamaihd.net/static/build/dtf.ru/favicons/favicon.ico
 // @icon64        https://dtfstaticbf19cf1-a.akamaihd.net/static/build/dtf.ru/favicons/favicon.ico
+// @updateURL     https://openuserjs.org/meta/Prostagma/QR-NSFW.meta.js
 // ==/UserScript==
 
 (function() {
@@ -325,8 +326,6 @@
             let lastPathStr = location.pathname;
             let lastQueryStr = location.search;
             let lastHashStr = location.hash;
-            //let locationModule = Air.get("module.location");
-            //locationModule.on("Url changed", (change) => {
             let pageURLCheckTimer = setInterval(
                 () => {
                     if (
@@ -511,7 +510,7 @@
         }
     }
 
-    function evolution_decode(selector = '.comments__item__media') {
+    function evolution_decode(selector = '.comment__media') {
         let uuids_set = new Set();
         for (let select of Array(selector)) {
             document.querySelectorAll(select).forEach(comment => {
