@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QR-NSFW
 // @namespace    http://dtf.ru/
-// @version      2.1.23
+// @version      2.1.24
 // @description  Watch NSFW content on OCHOBA sites (DTF, TJ, VC) using qr-codes magic!
 // @author       Prostagma?
 // @author       Zhenya Sokolov
@@ -26,10 +26,11 @@
 // @resource     customCSS https://raw.githubusercontent.com/neko-natum/DTF-dark-themes/master/PornTF.user.css
 // @resource     fotorama  https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.css
 // @resource     qr_popup_css https://dtf-qrnsfw.herokuapp.com/static/qr_nsfw_css.css
-// @copyright 2020, Prostagma (https://openuserjs.org/users/Prostagma)
+// @copyright 2022, Prostagma (https://openuserjs.org/users/Prostagma)
 // @license MIT
 // @icon          https://dtfstaticbf19cf1-a.akamaihd.net/static/build/dtf.ru/favicons/favicon.ico
 // @icon64        https://dtfstaticbf19cf1-a.akamaihd.net/static/build/dtf.ru/favicons/favicon.ico
+// @downloadURL   https://openuserjs.org/install/Prostagma/QR-NSFW.user.js
 // @updateURL     https://openuserjs.org/meta/Prostagma/QR-NSFW.meta.js
 // ==/UserScript==
 
@@ -278,8 +279,10 @@
                 continue;
             }
             if (!weather && change.target.className === 'page page--index ') {
-                let weather_p = change.target.querySelector('.l-fs-16.lm-fs-15.t-ff-1-700');
+                let weather_p = change.target.querySelector('.ui-filters__inner');
                 if (weather_p) {
+                    let weatherBar = document.createElement("span");
+                    weatherBar.setAttribute("style", "align-self: center;margin-left: auto;");
                     if (weather_p.innerText.search('°') === -1) {
                         weather = true;
                         axios.request({
@@ -289,7 +292,7 @@
                                 'Accept': 'text/plain',
                             }
                         }).then(data => {
-                            weather_p.innerText = weather_p.innerText + '\t' + data.data.trim();
+                            weatherBar.innerText = data.data.trim();
                         }).then(() => {
                             axios.request({
                                 method: "get",
@@ -298,8 +301,10 @@
                                     'Accept': 'text/plain',
                                 }
                             }).then(data => {
-                                weather_p.innerText = weather_p.innerText + '\t💲 = ' + data.data.result.USD.rate;
-                                weather_p.innerText = weather_p.innerText + '\t💶 = ' + data.data.result.EUR.rate;
+                                weatherBar.innerText = weatherBar.innerText + '\t💲 = ' + data.data.result.USD.rate;
+                                weatherBar.innerText = weatherBar.innerText + '\t💶 = ' + data.data.result.EUR.rate;
+                                weatherBar.innerText = weatherBar.innerText + '\t₿ = ' + data.data.result.BTC.rate;
+                                weather_p.appendChild(weatherBar);
                             });
                         });
                     }
