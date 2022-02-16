@@ -26,12 +26,12 @@
 // @resource     customCSS https://raw.githubusercontent.com/neko-natum/DTF-dark-themes/master/PornTF.user.css
 // @resource     fotorama  https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.css
 // @resource     qr_popup_css https://dtf-qrnsfw.herokuapp.com/static/qr_nsfw_css.css
-// @copyright 2022, Prostagma (https://openuserjs.org/users/Prostagma)
-// @license MIT
-// @icon          https://dtfstaticbf19cf1-a.akamaihd.net/static/build/dtf.ru/favicons/favicon.ico
-// @icon64        https://dtfstaticbf19cf1-a.akamaihd.net/static/build/dtf.ru/favicons/favicon.ico
-// @downloadURL   https://openuserjs.org/install/Prostagma/QR-NSFW.user.js
-// @updateURL     https://openuserjs.org/meta/Prostagma/QR-NSFW.meta.js
+// @copyright    2022, Prostagma (https://openuserjs.org/users/Prostagma)
+// @license      MIT
+// @icon         https://dtfstaticbf19cf1-a.akamaihd.net/static/build/dtf.ru/favicons/favicon.ico
+// @icon64       https://dtfstaticbf19cf1-a.akamaihd.net/static/build/dtf.ru/favicons/favicon.ico
+// @downloadURL  https://openuserjs.org/install/Prostagma/QR-NSFW.user.js
+// @updateURL    https://openuserjs.org/meta/Prostagma/QR-NSFW.meta.js
 // ==/UserScript==
 
 (function() {
